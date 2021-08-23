@@ -1,0 +1,36 @@
+{
+  "client": [
+    {
+      "services": {
+        "appinvite_service": {
+          "status": 1
+        }, 
+        "analytics_service": {
+          "status": 0
+        }
+      }, 
+      "oauth_client": [
+        {
+          "client_id": "651543696275-vlv4en9702pjp61teh3f6ve86mfmuehn.apps.googleusercontent.com"
+        }
+      ], 
+      "api_key": [
+        {
+          "current_key": "AIzaSyAY_JjqeD_Zrl7wl8kfOI7vfWNNlVNNJyg"
+        }
+      ], 
+      "client_info": {
+        "mobilesdk_app_id": "1:651543696275:ios:7c67d282132c262c4f8e66", 
+        "android_client_info": {
+          "package_name": "com.virtualwindow.TestFlight"
+        }
+      }
+    }
+  ], 
+  "configuration_version": "1", 
+  "project_info": {
+    "storage_bucket": "fitnessapptesting-1d3ad.appspot.com", 
+    "project_id": "fitnessapptesting-1d3ad", 
+    "project_number": "651543696275"
+  }
+}
