@@ -15,8 +15,6 @@ namespace FirestoreTest
 		[SerializeField] private InputField nameField;
 		[SerializeField] private InputField bioField;
 		[SerializeField] private Text msg;
-		
-		[FormerlySerializedAs("ErrorPanel")] [SerializeField] private GameObject errorPanel;
 
 		[SerializeField] private InputField emailFieldUpdate;
 		[SerializeField] private InputField nameFieldUpdate;
