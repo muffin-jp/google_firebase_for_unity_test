@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657815, g: 0.49641192, b: 0.57481617, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657874, g: 0.49641275, b: 0.5748172, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -483,7 +483,7 @@ GameObject:
   - component: {fileID: 384818228}
   - component: {fileID: 384818230}
   m_Layer: 5
-  m_Name: InputField
+  m_Name: InputFieldEmail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -880,7 +880,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: make account
+  m_Text: Sign Up
 --- !u!222 &689012604
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1468,6 +1468,84 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1019430951}
   m_CullTransparentMesh: 0
+--- !u!1 &1066262657
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1066262658}
+  - component: {fileID: 1066262660}
+  - component: {fileID: 1066262659}
+  m_Layer: 5
+  m_Name: LogText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1066262658
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066262657}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 2143162250}
+  m_RootOrder: 12
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 169.00008, y: 21.400024}
+  m_SizeDelta: {x: 337.33148, y: 42.741486}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1066262659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066262657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 1
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 14
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 0
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: 'Logs:'
+--- !u!222 &1066262660
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066262657}
+  m_CullTransparentMesh: 0
 --- !u!1 &1101210496
 GameObject:
   m_ObjectHideFlags: 0
@@ -1915,7 +1993,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1522978387}
-        m_MethodName: OnButtonMakeAccount
+        m_MethodName: SignUp
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2386,7 +2464,7 @@ GameObject:
   - component: {fileID: 1505154846}
   - component: {fileID: 1505154844}
   m_Layer: 5
-  m_Name: InputField (1)
+  m_Name: InputFieldPassword
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2547,6 +2625,7 @@ MonoBehaviour:
   _inputfPassword: {fileID: 1505154844}
   _canvas: {fileID: 2143162249}
   _autoLogin: {fileID: 246009926}
+  logs: {fileID: 1066262659}
 --- !u!4 &1522978388
 Transform:
   m_ObjectHideFlags: 0
@@ -3053,7 +3132,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Enter text...
+  m_Text: Enter Password...
 --- !u!222 &1851736684
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3358,7 +3437,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Enter text...
+  m_Text: Enter Email...
 --- !u!222 &1996284471
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3380,7 +3459,7 @@ GameObject:
   - component: {fileID: 2002771414}
   - component: {fileID: 2002771413}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: CanvasAccount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3794,7 +3873,7 @@ GameObject:
   - component: {fileID: 2143162252}
   - component: {fileID: 2143162251}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: CanvasInAppPurchase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3823,6 +3902,7 @@ RectTransform:
   - {fileID: 1757747038}
   - {fileID: 999290432}
   - {fileID: 1183130792}
+  - {fileID: 1066262658}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

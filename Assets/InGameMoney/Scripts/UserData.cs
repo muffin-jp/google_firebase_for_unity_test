@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Linq;
+using Firebase.Extensions;
+using Firebase.Firestore;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -10,8 +13,9 @@ namespace InGameMoney {
 class UserData
 {
 	//singleton.
-	public static UserData instance => _instance;
-	static UserData _instance = new UserData();
+	public static UserData Instance => _instance ?? (_instance = new UserData());
+
+	static UserData _instance;
 	UserData(){}
 
 	[System.Serializable]
@@ -61,8 +65,8 @@ class UserData
 		if ( null != _personalData ) return;
 		_personalData = PersonalData.Read();
 
-		GameObject.FindObjectOfType<PurchaseTest>().UpdateText();
-		GameObject.FindObjectOfType<ShopTest>().UpdateText();
+		ObjectManager.Instance.Purchase.UpdateText();
+		ObjectManager.Instance.Shop.UpdateText();
 	}
 
 	void OnLogout()
@@ -71,12 +75,74 @@ class UserData
 		_personalData = null;
 	}
 
-	public bool BuyMoney(int value)
+	public void BuyMoney(int value)
 	{
-//TODO UnityIAP
+		ObjectManager.Instance.Logs.text = $"Buying {value} Money ... ";
+		var buyId = $"{_data.mailAddress} Money-{value}-{System.DateTime.Now:HH:mm:ss:tt}";
+		var docRef = AccountTest.Db.Collection("UserMoney")
+			.Document($"{buyId}");
+		var userMoney = new UserMoney
+		{
+			Email = _data.mailAddress,
+			PurchasedMoney = value,
+			PurchasedTimeStamp = FieldValue.ServerTimestamp
+		};
+		docRef.SetAsync(userMoney).ContinueWithOnMainThread(task =>
+		{
+			if (task.IsCanceled)
+			{
+				ObjectManager.Instance.Logs.text = "An Error Occurred !";
+				return;
+			}
+
+			if (task.IsFaulted)
+			{
+				ObjectManager.Instance.Logs.text = "Add Data Failed Failed !";
+				return;
+			}
+
+			if (!task.IsCompleted) return;
+			ObjectManager.Instance.Logs.text = $"Succeed Buy {value} Money Completed! ";
+			CompletePurchaseMoney(value);
+			ObjectManager.Instance.Purchase.UpdateText();
+		});
+	}
+
+	private void CompletePurchaseMoney(int value)
+	{
 		_personalData.purchasedMoney += value;
 		_personalData.Write();
-		return true;
+		UpdateUserMoneyBalance(_personalData.purchasedMoney);
+	}
+
+	private void UpdateUserMoneyBalance(int moneyBalance)
+	{
+		ObjectManager.Instance.Logs.text = $"Updating User Money Balance ...";
+		var docRef = AccountTest.Db.Collection("Users").Document(_data.mailAddress);
+		var updates = new Dictionary<string, object>
+		{
+			{"MoneyBalance", moneyBalance}
+		};
+
+		docRef.UpdateAsync(updates).ContinueWithOnMainThread(task =>
+		{
+			if (task.IsCanceled)
+			{
+				ObjectManager.Instance.Logs.text = "An Error Occurred !";
+				return;
+			}
+
+			if (task.IsFaulted)
+			{
+				ObjectManager.Instance.Logs.text = "Update Data Failed Failed !";
+				return;
+			}
+
+			if (task.IsCompleted)
+			{
+				ObjectManager.Instance.Logs.text = $"Succeed updating money balance | balance : {moneyBalance}";
+			}
+		});
 	}
 
 	public enum Item {
@@ -84,7 +150,8 @@ class UserData
 		UnlockB,
 		UnlockC,
 	}
-	public bool PayMoney(int value, Item item)
+
+	private bool AbleToPayMoney(int value, Item item)
 	{
 		if ( _personalData.purchasedMoney < value ) return false;
 		_personalData.purchasedMoney -= value;
@@ -105,12 +172,82 @@ class UserData
 				_personalData.unlockedC = true;
 			}
 			break;
-		default:
-			break;
 		}
 
 		_personalData.Write();
 		return true;
+	}
+
+	public async void TryUnlockItem(int value, Item item)
+	{
+		var usersRef = AccountTest.Db.Collection("Users");
+		long moneyBalance = 0;
+		await usersRef.GetSnapshotAsync().ContinueWithOnMainThread(task =>
+		{
+			if (task.IsCanceled) { ObjectManager.Instance.Logs.text = "An Error Occurred !"; return; }
+			if (task.IsFaulted) { ObjectManager.Instance.Logs.text = "Add Data Failed Failed !"; return; }
+			var snapshot = task.Result;
+			
+			if (snapshot.Documents == null || !snapshot.Documents.Any())
+			{
+				ObjectManager.Instance.Logs.text = $"Data is null or empty";
+				return;
+			}
+
+			var document = snapshot.Documents.FirstOrDefault(x =>
+			{
+				var dict = x.ToDictionary();
+				return dict.ContainsValue(_data.mailAddress);
+			});
+			
+			var documentDict = document?.ToDictionary();
+			if (documentDict != null)
+				moneyBalance = (long) documentDict["MoneyBalance"];
+			else Debug.LogError($"MoneyBalance is null {_data.mailAddress}");
+		});
+
+		ObjectManager.Instance.Logs.text = $"MoneyBalance: {moneyBalance}";
+		_personalData.purchasedMoney = (int) moneyBalance;
+		if (AbleToPayMoney(value, item))
+		{
+			PurchaseItem(value, item);
+			UpdateUserMoneyBalance(_personalData.purchasedMoney);
+			ObjectManager.Instance.Shop.UpdateText();
+		}
+		else ObjectManager.Instance.Logs.text = $"Not Enough money to buy {item}";
+	}
+
+	private void PurchaseItem(int value, Item item)
+	{
+		ObjectManager.Instance.Logs.text = $"Purchase {item}";
+		var docId = $"{_data.mailAddress} Item-{item}-{System.DateTime.Now:HH:mm:ss:tt}";;
+		var docRef = AccountTest.Db.Collection("UserPurchasedItems").Document(docId);
+		var purchasedItem = new UserPurchasedItems
+		{
+			Email = _data.mailAddress,
+			PurchasedItem = item.ToString(),
+			Price = value,
+			PurchasedTimeStamp = FieldValue.ServerTimestamp
+		};
+		docRef.SetAsync(purchasedItem).ContinueWithOnMainThread(task =>
+		{
+			if (task.IsCanceled)
+			{
+				ObjectManager.Instance.Logs.text = "An Error Occurred !";
+				return;
+			}
+
+			if (task.IsFaulted)
+			{
+				ObjectManager.Instance.Logs.text = "Purchase Data Failed !";
+				return;
+			}
+
+			if (task.IsCompleted)
+			{
+				ObjectManager.Instance.Logs.text = $"Succeed purchasing item {item}";
+			}
+		});
 	}
 }
 

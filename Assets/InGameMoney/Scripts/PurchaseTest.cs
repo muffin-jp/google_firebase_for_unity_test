@@ -4,26 +4,25 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace InGameMoney {
-
-class PurchaseTest : MonoBehaviour
+	public class PurchaseTest : MonoBehaviour
 {
 	[SerializeField] Text _text;
 
 	public void UpdateText()
 	{
-	   _text.text = "Purchased Gold : " + UserData.instance.purchasedMoney.ToString();
+	   _text.text = "Purchased Gold : " + UserData.Instance.purchasedMoney;
 	}
 
 	public void OnButtonMoney100()
 	{
-		UserData.instance.BuyMoney(100);
-		UpdateText();
+		// Todo call Unity IAP mStoreController.InitiatePurchase(goldProductId) first 
+		// move below code to PurchaseProcessingResult (Unity IAP)
+		UserData.Instance.BuyMoney(100);
 	}
 
 	public void OnButtonMoney600()
 	{
-		UserData.instance.BuyMoney(600);
-		UpdateText();
+		UserData.Instance.BuyMoney(600);
 	}
 }
 
