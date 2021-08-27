@@ -1,22 +1,17 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Firebase.Extensions;
 using Firebase.Firestore;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace InGameMoney {
-
-class UserData
+	internal class UserData
 {
 	//singleton.
 	public static UserData Instance => _instance ?? (_instance = new UserData());
 
 	static UserData _instance;
-	UserData(){}
+	private UserData(){}
 
 	[System.Serializable]
 	public class Data {

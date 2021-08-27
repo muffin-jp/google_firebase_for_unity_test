@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Firebase.Extensions;
+﻿using Firebase.Extensions;
 using Firebase.Firestore;
 using UnityEngine;
 using UnityEngine.Assertions;
