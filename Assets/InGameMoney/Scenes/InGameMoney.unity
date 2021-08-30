@@ -756,8 +756,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _text: {fileID: 874451571}
-  money100ProductId: 
-  money600ProductId: 
+  money100ProductId: com.vw.testapp.100gold
+  money600ProductId: com.vw.testapp.600gold
 --- !u!4 &439351167
 Transform:
   m_ObjectHideFlags: 0

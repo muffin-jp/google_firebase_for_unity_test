@@ -109,7 +109,7 @@ namespace InGameMoney
 			OnLogin?.Invoke();
 		}
 
-		private void SignUp()
+		private void SignUpToFirestore()
 		{
 			Assert.IsNotNull(_inputfMailAdress.text, "Email is Missing !");
 			Assert.IsNotNull(_inputfPassword.text, "Password is Missing");
@@ -173,7 +173,7 @@ namespace InGameMoney
 			
 			var newUser = task.Result;
 			ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId}";
-			SignUp();
+			SignUpToFirestore();
 		}
 
 		public void OnButtonLoginFirebaseAuth()
