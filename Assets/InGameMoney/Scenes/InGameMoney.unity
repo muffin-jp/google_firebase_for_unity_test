@@ -756,6 +756,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _text: {fileID: 874451571}
+  money100ProductId: 
+  money600ProductId: 
 --- !u!4 &439351167
 Transform:
   m_ObjectHideFlags: 0
@@ -1336,7 +1338,7 @@ GameObject:
   - component: {fileID: 999290434}
   - component: {fileID: 999290433}
   m_Layer: 5
-  m_Name: Button (5)
+  m_Name: Unlock B
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1804,7 +1806,7 @@ GameObject:
   - component: {fileID: 1183130794}
   - component: {fileID: 1183130793}
   m_Layer: 5
-  m_Name: Button (6)
+  m_Name: Unlock C
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2324,7 +2326,7 @@ GameObject:
   - component: {fileID: 1346501846}
   - component: {fileID: 1346501845}
   m_Layer: 5
-  m_Name: Button
+  m_Name: Buy100MoneyButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2394,12 +2396,12 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 439351166}
-        m_MethodName: OnButtonMoney100
-        m_Mode: 1
+        m_MethodName: OnBuyMoneyButton
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 100
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -2844,7 +2846,7 @@ GameObject:
   - component: {fileID: 1668491625}
   - component: {fileID: 1668491624}
   m_Layer: 5
-  m_Name: Text (1)
+  m_Name: IAPText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2923,7 +2925,7 @@ GameObject:
   - component: {fileID: 1757747040}
   - component: {fileID: 1757747039}
   m_Layer: 5
-  m_Name: Button (4)
+  m_Name: Unlock A
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3365,7 +3367,7 @@ GameObject:
   - component: {fileID: 1966797891}
   - component: {fileID: 1966797890}
   m_Layer: 5
-  m_Name: Button (3)
+  m_Name: Buy600MoneyButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3435,12 +3437,12 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 439351166}
-        m_MethodName: OnButtonMoney600
-        m_Mode: 1
+        m_MethodName: OnBuyMoneyButton
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 600
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
