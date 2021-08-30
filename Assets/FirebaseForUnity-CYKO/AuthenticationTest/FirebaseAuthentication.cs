@@ -89,7 +89,7 @@ namespace Scenes.Authentication
 
 				PlayerPrefs.SetString ("password", password.text);
 				var newUser = task.Result;
-				Debug.LogFormat ("Firebase user created successfully: {0} ({1})", newUser.DisplayName, newUser.UserId);
+				Debug.LogFormat ("Firebase user created successfully: DisplayName {0} (Id {1})", newUser.DisplayName, newUser.UserId);
 				Msg = "Account Created, Your UID: "+newUser.UserId;
 				ProfilePanel.SetActive (true);
 				SignupPanel.SetActive (false);
