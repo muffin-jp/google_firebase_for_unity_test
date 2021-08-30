@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Firebase.Extensions;
 using Firebase.Firestore;
 using UnityEngine;
@@ -8,9 +9,9 @@ namespace InGameMoney {
 	internal class UserData
 {
 	//singleton.
-	public static UserData Instance => _instance ?? (_instance = new UserData());
+	public static UserData Instance => instance ?? (instance = new UserData());
 
-	static UserData _instance;
+	static UserData instance;
 	private UserData(){}
 
 	[System.Serializable]
@@ -41,6 +42,7 @@ namespace InGameMoney {
 #endregion
 	}
 	PersonalData _personalData;
+	private long moneyBalance;
 	public int purchasedMoney => _personalData.purchasedMoney;
 	public bool unlockedA => _personalData.unlockedA;
 	public bool unlockedB => _personalData.unlockedB;
@@ -175,8 +177,24 @@ namespace InGameMoney {
 
 	public async void TryUnlockItem(int value, Item item)
 	{
+		await ReadUserData();
+
+		ObjectManager.Instance.Logs.text = $"MoneyBalance: {moneyBalance}";
+		_personalData.purchasedMoney = (int) moneyBalance;
+		if (AbleToPayMoney(value, item))
+		{
+			PurchaseItem(value, item);
+			UpdateUserMoneyBalance(_personalData.purchasedMoney);
+			ObjectManager.Instance.Shop.UpdateText();
+		}
+		else ObjectManager.Instance.Logs.text = $"Not Enough money to buy {item}";
+	}
+
+	// Read user data from firestore to prevent cheat
+	private async Task ReadUserData()
+	{
 		var usersRef = AccountTest.Db.Collection("Users");
-		long moneyBalance = 0;
+		moneyBalance = 0;
 		await usersRef.GetSnapshotAsync().ContinueWithOnMainThread(task =>
 		{
 			if (task.IsCanceled) { ObjectManager.Instance.Logs.text = "An Error Occurred !"; return; }
@@ -200,16 +218,6 @@ namespace InGameMoney {
 				moneyBalance = (long) documentDict["MoneyBalance"];
 			else Debug.LogError($"MoneyBalance is null {_data.mailAddress}");
 		});
-
-		ObjectManager.Instance.Logs.text = $"MoneyBalance: {moneyBalance}";
-		_personalData.purchasedMoney = (int) moneyBalance;
-		if (AbleToPayMoney(value, item))
-		{
-			PurchaseItem(value, item);
-			UpdateUserMoneyBalance(_personalData.purchasedMoney);
-			ObjectManager.Instance.Shop.UpdateText();
-		}
-		else ObjectManager.Instance.Logs.text = $"Not Enough money to buy {item}";
 	}
 
 	private void PurchaseItem(int value, Item item)
