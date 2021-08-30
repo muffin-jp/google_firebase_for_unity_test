@@ -53,8 +53,8 @@ namespace InGameMoney {
 		if ( null != _data ) return;
 		_data = Data.Read();
 		
-		AccountTest.onLogin += OnLogin;
-		AccountTest.onLogout += OnLogout;
+		AccountTest.OnLogin += OnLogin;
+		AccountTest.OnLogout += OnLogout;
 	}
 
 	void OnLogin()

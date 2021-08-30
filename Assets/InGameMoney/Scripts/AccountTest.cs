@@ -1,33 +1,37 @@
-﻿using Firebase.Extensions;
+﻿using System;
+using System.Threading.Tasks;
+using Firebase.Auth;
+using Firebase.Extensions;
 using Firebase.Firestore;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
 using UnityEngine.Events;
+#pragma warning disable 4014
 
 namespace InGameMoney
 {
-
-	class AccountTest : MonoBehaviour
+	internal class AccountTest : MonoBehaviour
 	{
 		[SerializeField] InputField _inputfMailAdress;
 		[SerializeField] InputField _inputfPassword;
-		[SerializeField] GameObject _canvas;
+		[SerializeField] private GameObject canvasIap;
 		[SerializeField] Toggle _autoLogin;
 
-		public static UnityAction onLogin = null;
-		public static UnityAction onLogout = null;
+		public static UnityAction OnLogin = null;
+		public static UnityAction OnLogout = null;
 		public static FirebaseFirestore Db => db;
 
 		private static FirebaseFirestore db;
 		private UserData userdata;
-
-		public static AccountTest Instance { get; private set; }
+		private FirebaseAuth auth;
+		private FirebaseUser user;
+		private bool signedIn;
+		private static ITaskFault taskFault;
 
 		private void Awake()
 		{
-			if (Instance) Destroy(this);
-			else Instance = this;
+			InitializeFirebase();
 		}
 
 		private void Start()
@@ -40,7 +44,7 @@ namespace InGameMoney
 
 			_inputfMailAdress.text = userdata.data.mailAddress;
 			_inputfPassword.text = userdata.data.password;
-			_canvas.SetActive(false);
+			canvasIap.SetActive(false);
 
 			_autoLogin.isOn = userdata.data.autoLogin;
 			if (string.IsNullOrEmpty(userdata.data.mailAddress)
@@ -48,37 +52,64 @@ namespace InGameMoney
 			)
 			{
 				_autoLogin.isOn = false;
+				auth.SignOut();
+				ObjectManager.Instance.Logs.text = $"Sign Out: {auth.CurrentUser}";
 			}
 
-			if (_autoLogin.isOn)
+			if (_autoLogin.isOn && signedIn)
 			{
-				OnButtonLogin();
+				ProceedLogin();
+			}
+		}
+		
+		private void InitializeFirebase ()
+		{
+			auth = FirebaseAuth.DefaultInstance;
+			auth.StateChanged += AuthStateChanged;
+			AuthStateChanged (this, null);
+		}
+
+		private void AuthStateChanged(object sender, EventArgs eventArgs)
+		{
+			if (auth.CurrentUser != user) {
+				signedIn = user != auth.CurrentUser && auth.CurrentUser != null;
+				user = auth.CurrentUser;
+				switch (signedIn)
+				{
+					case false when user != null:
+						ObjectManager.Instance.Logs.text = $"Signed out {user?.UserId}";
+						break;
+					case true:
+						ObjectManager.Instance.Logs.text = $"Current user id {user?.UserId}";
+						break;
+				}
 			}
 		}
 
 		void OnApplicationQuit()
 		{
-			onLogout?.Invoke();
+			OnLogout?.Invoke();
 			WriteUserData();
 		}
 
 		private void WriteUserData()
 		{
+			if (userdata?.data == null) return;
 			userdata.data.mailAddress = _inputfMailAdress.text;
 			userdata.data.password = _inputfPassword.text;
 			userdata.data.autoLogin = _autoLogin.isOn;
 			userdata.data.Write();
 		}
 
-		private void OnButtonMakeAccount()
+		private void ProceedAfterLogin()
 		{
-			_canvas.SetActive(true);
+			canvasIap.SetActive(true);
 			_inputfMailAdress.interactable = false;
 			_inputfPassword.interactable = false;
-			onLogin?.Invoke();
+			OnLogin?.Invoke();
 		}
 
-		public void SignUp()
+		private void SignUp()
 		{
 			Assert.IsNotNull(_inputfMailAdress.text, "Email is Missing !");
 			Assert.IsNotNull(_inputfPassword.text, "Password is Missing");
@@ -86,7 +117,7 @@ namespace InGameMoney
 			ObjectManager.Instance.Logs.text = "Adding Data ...";
 			var docRef = db.Collection("Users").Document(_inputfMailAdress.text);
 
-			var user = new User
+			var data = new User
 			{
 				Email = _inputfMailAdress.text,
 				Password = _inputfPassword.text,
@@ -94,7 +125,7 @@ namespace InGameMoney
 				SignUpTimeStamp = FieldValue.ServerTimestamp
 			};
 
-			docRef.SetAsync(user).ContinueWithOnMainThread(task =>
+			docRef.SetAsync(data).ContinueWithOnMainThread(task =>
 			{
 				if (task.IsCanceled)
 				{
@@ -113,27 +144,95 @@ namespace InGameMoney
 					ObjectManager.Instance.Logs.text =
 						$"New Data Added, Now You can read and update data using id : {_inputfMailAdress.text}";
 					WriteUserData();
-					OnButtonMakeAccount();
+					ProceedAfterLogin();
 				}
 			});
 		}
 
-		public void OnButtonLogin()
+		public void OnFirebaseAuthSignUp()
 		{
-//TODO Firebase
-			_canvas.SetActive(true);
-			_inputfMailAdress.interactable = false;
-			_inputfPassword.interactable = false;
-			onLogin?.Invoke();
+			FirebaseAuthSignUp();
 		}
 
-		public void OnButtonLogout()
+		private async Task FirebaseAuthSignUp()
 		{
-//TODO Firebase
-			_canvas.SetActive(false);
+			ObjectManager.Instance.Logs.text = "Creating User Account....";
+
+			var task = auth.CreateUserWithEmailAndPasswordAsync(_inputfMailAdress.text, _inputfPassword.text)
+				.ContinueWithOnMainThread(signUpTask => signUpTask);
+
+			if (task.IsCanceled)
+			{
+				ObjectManager.Instance.Logs.text = "Create User With Email And Password was canceled.";
+				return;
+			}
+
+			await task;
+			
+			if (IsFaultedTask(task.Result)) return;
+			
+			var newUser = task.Result;
+			ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId}";
+			SignUp();
+		}
+
+		public void OnButtonLoginFirebaseAuth()
+		{
+			ObjectManager.Instance.Logs.text = "Logging In User Account...";
+			ProceedLogin();
+		}
+
+		private async Task ProceedLogin()
+		{
+			ObjectManager.Instance.Logs.text = "Logging In User Account...";
+			var loginTask = auth.SignInWithEmailAndPasswordAsync(_inputfMailAdress.text, _inputfPassword.text)
+				.ContinueWithOnMainThread(task => task);
+
+			if (loginTask.IsCanceled)
+			{
+				ObjectManager.Instance.Logs.text = $"SignIn With email {_inputfMailAdress.text} And Password Async was canceled ";
+				return;
+			}
+
+			await loginTask;
+			
+			if (IsFaultedTask(loginTask.Result, true)) return;
+			
+			var login = loginTask.Result;
+			ObjectManager.Instance.Logs.text = $"Account Logged In, your user ID: {login.Result.UserId}";
+			Login();
+		}
+
+		private void Login()
+		{
+			canvasIap.SetActive(true);
+			_inputfMailAdress.interactable = false;
+			_inputfPassword.interactable = false;
+			OnLogin?.Invoke();
+		}
+
+		public void OnButtonLogoutFirebaseAuth()
+		{
+			auth.SignOut();
+			Logout();
+		}
+
+		private void Logout()
+		{
+			canvasIap.SetActive(false);
 			_inputfMailAdress.interactable = true;
 			_inputfPassword.interactable = true;
-			onLogout?.Invoke();
+			OnLogout?.Invoke();
+		}
+		
+		private static bool IsFaultedTask(Task<FirebaseUser> task, bool isLogin = false)
+		{
+			if (!isLogin)
+				taskFault = new SignUp();
+			else
+				taskFault = new Login();
+
+			return taskFault.Validate(task);
 		}
 	}
 }
