@@ -47,9 +47,11 @@ namespace InGameMoney {
 			switch (moneyAmount)
 			{
 				case 100:
+					ObjectManager.Instance.Logs.text = $"Buy 100 money {money100ProductId}";
 					mStoreController.InitiatePurchase(money100ProductId);
 					break;
 				case 600:
+					ObjectManager.Instance.Logs.text = $"Buy 600 money {money600ProductId}";
 					mStoreController.InitiatePurchase(money600ProductId);
 					break;
 			}
