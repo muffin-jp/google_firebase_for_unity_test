@@ -28,9 +28,17 @@ namespace InGameMoney
 		private FirebaseUser user;
 		private bool signedIn;
 		private static ITaskFault taskFault;
+		public static IWriteUserData UserDataAccess;
+		public InputField InputFieldMailAddress => _inputfMailAdress;
+		public InputField InputFieldPassword => _inputfPassword;
+		public Toggle AutoLogin => _autoLogin;
+
+		public static AccountTest Instance { get; private set; }
 
 		private void Awake()
 		{
+			if (Instance) Destroy(this);
+			else Instance = this;
 			InitializeFirebase();
 		}
 
@@ -38,6 +46,7 @@ namespace InGameMoney
 		{
 			db = FirebaseFirestore.DefaultInstance;
 			userdata = UserData.Instance;
+			UserDataAccess = new UserDataAccess(userdata);
 			_inputfPassword.inputType = InputField.InputType.Password;
 			_inputfPassword.asteriskChar = "$!£%&*"[5];
 			userdata.Init();
@@ -58,6 +67,7 @@ namespace InGameMoney
 
 			if (_autoLogin.isOn && signedIn)
 			{
+				ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
 				Login();
 			}
 		}
@@ -87,7 +97,7 @@ namespace InGameMoney
 			}
 		}
 
-		void OnApplicationQuit()
+		private void OnApplicationQuit()
 		{
 			OnLogout?.Invoke();
 			WriteUserData();
@@ -95,11 +105,7 @@ namespace InGameMoney
 
 		private void WriteUserData()
 		{
-			if (userdata?.data == null) return;
-			userdata.data.mailAddress = _inputfMailAdress.text;
-			userdata.data.password = _inputfPassword.text;
-			userdata.data.autoLogin = _autoLogin.isOn;
-			userdata.data.Write();
+			UserDataAccess.WriteData(_inputfMailAdress.text, _inputfPassword.text, _autoLogin.isOn);
 		}
 
 		private void ProceedAfterLogin()

@@ -6,12 +6,12 @@ using Firebase.Firestore;
 using UnityEngine;
 
 namespace InGameMoney {
-	internal class UserData
+	public class UserData
 {
 	//singleton.
 	public static UserData Instance => instance ?? (instance = new UserData());
 
-	static UserData instance;
+	private static UserData instance;
 	private UserData(){}
 
 	[System.Serializable]
@@ -62,6 +62,25 @@ namespace InGameMoney {
 		if ( null != _personalData ) return;
 		_personalData = PersonalData.Read();
 
+		UpdateUserData();
+		UpdatePurchaseAndShop();
+	}
+
+	private static void UpdateUserData()
+	{
+		IWriteUserData writeUserData = AccountTest.UserDataAccess;
+		var mailAddress = AccountTest.Instance.InputFieldMailAddress.text;
+		var password = AccountTest.Instance.InputFieldPassword.text;
+		var autoLogin = AccountTest.Instance.AutoLogin;
+		writeUserData.WriteData(mailAddress, password, autoLogin);
+	}
+
+	private async void UpdatePurchaseAndShop()
+	{
+		await ReadUserData();
+
+		_personalData.purchasedMoney = (int) moneyBalance;
+		_personalData.Write();
 		ObjectManager.Instance.Purchase.UpdateText();
 		ObjectManager.Instance.Shop.UpdateText();
 	}
