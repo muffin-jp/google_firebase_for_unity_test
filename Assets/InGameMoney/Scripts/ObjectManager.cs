@@ -6,12 +6,16 @@ namespace InGameMoney
     public class ObjectManager : MonoBehaviour
     {
         [SerializeField] private PurchaseTest purchase;
-        public PurchaseTest Purchase => purchase;
-        
         [SerializeField] private Text logs;
-        public Text Logs => logs;
-
         [SerializeField] private ShopTest shop;
+        [SerializeField] private GameObject inGameMoney;
+        [SerializeField] private GameObject firstBoot;
+        
+        public PurchaseTest Purchase => purchase;
+        public Text Logs => logs;
+        public GameObject InGameMoney => inGameMoney;
+        public GameObject FirstBoot => firstBoot;
+        
         public ShopTest Shop => shop;
         public static ObjectManager Instance { get; private set; }
 

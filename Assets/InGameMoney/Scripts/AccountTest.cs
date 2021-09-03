@@ -61,7 +61,8 @@ namespace InGameMoney
 			)
 			{
 				_autoLogin.isOn = false;
-				auth.SignOut();
+				if (auth?.CurrentUser != null && !auth.CurrentUser.IsAnonymous) 
+					auth.SignOut();
 				ObjectManager.Instance.Logs.text = $"Sign Out: {auth.CurrentUser}";
 			}
 
@@ -179,7 +180,7 @@ namespace InGameMoney
 			if (IsFaultedTask(task.Result)) return;
 			
 			var newUser = task.Result;
-			ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId}";
+			ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
 			SignUpToFirestore();
 		}
 
