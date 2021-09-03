@@ -212,30 +212,25 @@ namespace InGameMoney {
 	// Read user data from firestore to prevent cheat
 	private async Task ReadUserData()
 	{
-		var usersRef = AccountTest.Db.Collection("Users");
+		var usersRef = AccountTest.Db.Collection("Users").Document(_data.mailAddress);
 		moneyBalance = 0;
 		await usersRef.GetSnapshotAsync().ContinueWithOnMainThread(task =>
 		{
 			if (task.IsCanceled) { ObjectManager.Instance.Logs.text = "An Error Occurred !"; return; }
 			if (task.IsFaulted) { ObjectManager.Instance.Logs.text = "Add Data Failed Failed !"; return; }
 			var snapshot = task.Result;
-			
-			if (snapshot.Documents == null || !snapshot.Documents.Any())
-			{
-				ObjectManager.Instance.Logs.text = $"Data is null or empty";
-				return;
-			}
 
-			var document = snapshot.Documents.FirstOrDefault(x =>
+			if (snapshot.Exists)
 			{
-				var dict = x.ToDictionary();
-				return dict.ContainsValue(_data.mailAddress);
-			});
-			
-			var documentDict = document?.ToDictionary();
-			if (documentDict != null)
-				moneyBalance = (long) documentDict["MoneyBalance"];
-			else Debug.LogError($"MoneyBalance is null {_data.mailAddress}");
+				ObjectManager.Instance.Logs.text = $"Document exist! for {snapshot.Id}";
+				var user = snapshot.ConvertTo<User>();
+				if (user != null) moneyBalance = user.MoneyBalance;
+				else Debug.LogError($"user is null {_data.mailAddress}");
+			}
+			else
+			{
+				ObjectManager.Instance.Logs.text = $"Document does not exist! {snapshot.Id}";
+			}
 		});
 	}
 
