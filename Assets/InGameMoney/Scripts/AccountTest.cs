@@ -23,7 +23,7 @@ namespace InGameMoney
 		public static FirebaseFirestore Db => db;
 
 		private static FirebaseFirestore db;
-		private UserData userdata;
+		private static UserData userdata;
 		private FirebaseAuth auth;
 		private FirebaseUser user;
 		private bool signedIn;
@@ -51,26 +51,43 @@ namespace InGameMoney
 			_inputfPassword.asteriskChar = "$!£%&*"[5];
 			userdata.Init();
 
-			_inputfMailAdress.text = userdata.data.mailAddress;
-			_inputfPassword.text = userdata.data.password;
-			canvasIap.SetActive(false);
-
-			_autoLogin.isOn = userdata.data.autoLogin;
-			if (string.IsNullOrEmpty(userdata.data.mailAddress)
-			    || string.IsNullOrEmpty(userdata.data.password)
-			)
+			Instance.CurrentUserValidation();
+		}
+		
+		public void CurrentUserValidation()
+		{
+			if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous)
 			{
-				_autoLogin.isOn = false;
-				if (auth?.CurrentUser != null && !auth.CurrentUser.IsAnonymous) 
-					auth.SignOut();
-				ObjectManager.Instance.Logs.text = $"Sign Out: {auth.CurrentUser}";
-			}
-
-			if (_autoLogin.isOn && signedIn)
-			{
-				ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
+				SetupUI($"匿名@{auth.CurrentUser.UserId}", "", false);
 				Login();
 			}
+			else
+			{
+				SetupUI(userdata.data.mailAddress, userdata.data.password, userdata.data.autoLogin);
+				if (string.IsNullOrEmpty(userdata.data.mailAddress) || string.IsNullOrEmpty(userdata.data.password))
+				{
+					_autoLogin.isOn = false;
+					auth.SignOut();
+					ObjectManager.Instance.Logs.text = $"Sign Out: {auth.CurrentUser}";
+				}
+
+				if (_autoLogin.isOn && signedIn)
+				{
+					ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
+					Login();
+				}
+			}
+		}
+
+		private void SetupUI(string emailAddress, string password, bool autoLogin)
+		{
+			_inputfMailAdress.text = emailAddress;
+			_inputfPassword.text = password;
+			_autoLogin.isOn = autoLogin;
+			
+			canvasIap.SetActive(false);
+			ObjectManager.Instance.FirstBoot.SetActive(false);
+			ObjectManager.Instance.InGameMoney.SetActive(true);
 		}
 		
 		private void InitializeFirebase ()

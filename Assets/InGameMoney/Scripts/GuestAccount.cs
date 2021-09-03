@@ -44,10 +44,11 @@ namespace InGameMoney
             ProceedLogin();
         }
 
-        private void ProceedLogin()
+        private static void ProceedLogin()
         {
             ObjectManager.Instance.FirstBoot.SetActive(false);
             ObjectManager.Instance.InGameMoney.SetActive(true);
+            AccountTest.Instance.CurrentUserValidation();
         }
     }
 }
