@@ -58,12 +58,13 @@ namespace InGameMoney
 
 			if (_autoLogin.isOn && signedIn)
 			{
-				ProceedLogin();
+				Login();
 			}
 		}
 		
 		private void InitializeFirebase ()
 		{
+			// FirebaseAuth.DefaultInstanceはSignOutしない限り最後ログインしているユーザーを維持する
 			auth = FirebaseAuth.DefaultInstance;
 			auth.StateChanged += AuthStateChanged;
 			AuthStateChanged (this, null);
@@ -179,10 +180,10 @@ namespace InGameMoney
 		public void OnButtonLoginFirebaseAuth()
 		{
 			ObjectManager.Instance.Logs.text = "Logging In User Account...";
-			ProceedLogin();
+			ProceedFirebaseAuthLogin();
 		}
 
-		private async Task ProceedLogin()
+		private async Task ProceedFirebaseAuthLogin()
 		{
 			ObjectManager.Instance.Logs.text = "Logging In User Account...";
 			var loginTask = auth.SignInWithEmailAndPasswordAsync(_inputfMailAdress.text, _inputfPassword.text)
