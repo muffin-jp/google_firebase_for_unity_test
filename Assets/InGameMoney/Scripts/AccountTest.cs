@@ -84,10 +84,13 @@ namespace InGameMoney
 			_inputfMailAdress.text = emailAddress;
 			_inputfPassword.text = password;
 			_autoLogin.isOn = autoLogin;
-			
 			canvasIap.SetActive(false);
-			ObjectManager.Instance.FirstBoot.SetActive(false);
-			ObjectManager.Instance.InGameMoney.SetActive(true);
+
+			if (signedIn)
+			{
+				ObjectManager.Instance.FirstBoot.SetActive(false);
+				ObjectManager.Instance.InGameMoney.SetActive(true);
+			}
 		}
 		
 		private void InitializeFirebase ()
