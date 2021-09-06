@@ -88,6 +88,7 @@ namespace InGameMoney
 				if (signedIn)
 				{
 					SetupUI(userdata.data.mailAddress, userdata.data.password, userdata.data.autoLogin);
+					registerGuestAccount.interactable = false;
 					if (_autoLogin.isOn)
 					{
 						ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
@@ -124,7 +125,6 @@ namespace InGameMoney
 			ObjectManager.Instance.FirstBoot.SetActive(false);
 			ObjectManager.Instance.InGameMoney.SetActive(true);
 			signUpButton.interactable = false;
-			registerGuestAccount.interactable = false;
 		}
 		
 		private void InitializeFirebase ()
