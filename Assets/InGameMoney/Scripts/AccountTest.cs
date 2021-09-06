@@ -22,7 +22,7 @@ namespace InGameMoney
 		[SerializeField] private Button signInButton;
 		[SerializeField] private Button signOutButton;
 		[SerializeField] private Button signUpButton;
-		[SerializeField] private GameObject registerGuestAccount;
+		[SerializeField] private Button registerGuestAccount;
 
 		public static UnityAction OnLogin = null;
 		public static UnityAction OnLogout = null;
@@ -80,13 +80,19 @@ namespace InGameMoney
 			else
 			{
 				if (string.IsNullOrEmpty(userdata.data.mailAddress) || string.IsNullOrEmpty(userdata.data.password))
-					SignOutBecauseLocalDataIsEmpty();
-
-				if (_autoLogin.isOn && signedIn)
 				{
-					ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
+					SignOutBecauseLocalDataIsEmpty();
+					return;
+				}
+
+				if (signedIn)
+				{
 					SetupUI(userdata.data.mailAddress, userdata.data.password, userdata.data.autoLogin);
-					Login();
+					if (_autoLogin.isOn)
+					{
+						ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
+						Login();
+					}
 				}
 			}
 		}
@@ -109,9 +115,16 @@ namespace InGameMoney
 
 			if (signedIn)
 			{
-				ObjectManager.Instance.FirstBoot.SetActive(false);
-				ObjectManager.Instance.InGameMoney.SetActive(true);
+				OpenLoginView();
 			}
+		}
+		
+		private void OpenLoginView()
+		{
+			ObjectManager.Instance.FirstBoot.SetActive(false);
+			ObjectManager.Instance.InGameMoney.SetActive(true);
+			signUpButton.interactable = false;
+			registerGuestAccount.interactable = false;
 		}
 		
 		private void InitializeFirebase ()
@@ -204,7 +217,7 @@ namespace InGameMoney
 		
 		public void OnButtonSignUpFirebaseAuth()
 		{
-			if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous && !registerGuestAccount.activeSelf)
+			if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous && !registerGuestAccount.gameObject.activeSelf)
 			{
 				LinkAuthCredential();
 			}
@@ -283,6 +296,8 @@ namespace InGameMoney
 			canvasIap.SetActive(false);
 			_inputfMailAdress.interactable = true;
 			_inputfPassword.interactable = true;
+			signInButton.interactable = true;
+			registerGuestAccount.interactable = true;
 			OnLogout?.Invoke();
 		}
 		
@@ -320,6 +335,7 @@ namespace InGameMoney
 		{
 			signInButton.interactable = false;
 			signUpButton.interactable = false;
+			signOutButton.interactable = true;
 		}
 		
 		private static bool IsFaultedTask(Task<FirebaseUser> task, bool isLogin = false)

@@ -3107,7 +3107,7 @@ MonoBehaviour:
   signInButton: {fileID: 1019430953}
   signOutButton: {fileID: 1101210498}
   signUpButton: {fileID: 1293138212}
-  registerGuestAccount: {fileID: 266581265}
+  registerGuestAccount: {fileID: 266581267}
 --- !u!4 &1522978388
 Transform:
   m_ObjectHideFlags: 0
