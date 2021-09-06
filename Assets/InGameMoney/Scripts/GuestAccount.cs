@@ -5,14 +5,14 @@ namespace InGameMoney
 {
     public class GuestAccount : MonoBehaviour
     {
-        private FirebaseAuth auth;
+        private static FirebaseAuth auth;
         
         private void Awake()
         {
             InitializeFirebase();
         }
 
-        private void InitializeFirebase()
+        private static void InitializeFirebase()
         {
             auth = FirebaseAuth.DefaultInstance;
         }
@@ -48,7 +48,9 @@ namespace InGameMoney
         {
             ObjectManager.Instance.FirstBoot.SetActive(false);
             ObjectManager.Instance.InGameMoney.SetActive(true);
-            AccountTest.Instance.CurrentUserValidation();
+            AccountTest.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
+            var userData = AccountTest.Instance.GetDefaultUserData();
+            AccountTest.Instance.SignUpToFirestore(userData);
         }
     }
 }

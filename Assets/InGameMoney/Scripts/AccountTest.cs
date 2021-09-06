@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
+
 #pragma warning disable 4014
 
 namespace InGameMoney
@@ -17,6 +19,10 @@ namespace InGameMoney
 		[SerializeField] InputField _inputfPassword;
 		[SerializeField] private GameObject canvasIap;
 		[SerializeField] Toggle _autoLogin;
+		[SerializeField] private Button signInButton;
+		[SerializeField] private Button signOutButton;
+		[SerializeField] private Button signUpButton;
+		[SerializeField] private GameObject registerGuestAccount;
 
 		public static UnityAction OnLogin = null;
 		public static UnityAction OnLogout = null;
@@ -32,6 +38,10 @@ namespace InGameMoney
 		public InputField InputFieldMailAddress => _inputfMailAdress;
 		public InputField InputFieldPassword => _inputfPassword;
 		public Toggle AutoLogin => _autoLogin;
+		public GameObject CanvasIAP => canvasIap;
+		public Button SignInButton => signInButton;
+		public Button SignOutButton => signOutButton;
+		public Button SignUpButton => signUpButton;
 
 		public static AccountTest Instance { get; private set; }
 
@@ -51,35 +61,46 @@ namespace InGameMoney
 			_inputfPassword.asteriskChar = "$!£%&*"[5];
 			userdata.Init();
 
-			Instance.CurrentUserValidation();
+			CurrentUserValidation();
 		}
-		
-		public void CurrentUserValidation()
+
+		private void CurrentUserValidation()
 		{
 			if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous)
 			{
-				SetupUI($"匿名@{auth.CurrentUser.UserId}", "", false);
+				if (string.IsNullOrEmpty(userdata.data.mailAddress) || string.IsNullOrEmpty(userdata.data.password))
+				{
+					SignOutBecauseLocalDataIsEmpty();
+					return;
+				}
+				
+				SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
 				Login();
 			}
 			else
 			{
-				SetupUI(userdata.data.mailAddress, userdata.data.password, userdata.data.autoLogin);
 				if (string.IsNullOrEmpty(userdata.data.mailAddress) || string.IsNullOrEmpty(userdata.data.password))
-				{
-					_autoLogin.isOn = false;
-					auth.SignOut();
-					ObjectManager.Instance.Logs.text = $"Sign Out: {auth.CurrentUser}";
-				}
+					SignOutBecauseLocalDataIsEmpty();
 
 				if (_autoLogin.isOn && signedIn)
 				{
 					ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
+					SetupUI(userdata.data.mailAddress, userdata.data.password, userdata.data.autoLogin);
 					Login();
 				}
 			}
 		}
 
-		private void SetupUI(string emailAddress, string password, bool autoLogin)
+		private void SignOutBecauseLocalDataIsEmpty()
+		{
+			_autoLogin.isOn = false;
+			auth?.SignOut();
+			ObjectManager.Instance.Logs.text = $"Sign Out: {auth?.CurrentUser}";
+			ObjectManager.Instance.InGameMoney.SetActive(false);
+			ObjectManager.Instance.FirstBoot.SetActive(true);
+		}
+
+		public void SetupUI(string emailAddress, string password, bool autoLogin)
 		{
 			_inputfMailAdress.text = emailAddress;
 			_inputfPassword.text = password;
@@ -131,27 +152,20 @@ namespace InGameMoney
 
 		private void ProceedAfterLogin()
 		{
+			SetAuthButtonInteraction();
 			canvasIap.SetActive(true);
 			_inputfMailAdress.interactable = false;
 			_inputfPassword.interactable = false;
 			OnLogin?.Invoke();
 		}
 
-		private void SignUpToFirestore()
+		public void SignUpToFirestore(User data)
 		{
 			Assert.IsNotNull(_inputfMailAdress.text, "Email is Missing !");
 			Assert.IsNotNull(_inputfPassword.text, "Password is Missing");
 
 			ObjectManager.Instance.Logs.text = "Adding Data ...";
 			var docRef = db.Collection("Users").Document(_inputfMailAdress.text);
-
-			var data = new User
-			{
-				Email = _inputfMailAdress.text,
-				Password = _inputfPassword.text,
-				MoneyBalance = 0,
-				SignUpTimeStamp = FieldValue.ServerTimestamp
-			};
 
 			docRef.SetAsync(data).ContinueWithOnMainThread(task =>
 			{
@@ -177,12 +191,30 @@ namespace InGameMoney
 			});
 		}
 
-		public void OnFirebaseAuthSignUp()
+		public User GetDefaultUserData()
 		{
-			FirebaseAuthSignUp();
+			return new User
+			{
+				Email = _inputfMailAdress.text,
+				Password = _inputfPassword.text,
+				MoneyBalance = 0,
+				SignUpTimeStamp = FieldValue.ServerTimestamp
+			};
+		}
+		
+		public void OnButtonSignUpFirebaseAuth()
+		{
+			if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous && !registerGuestAccount.activeSelf)
+			{
+				LinkAuthCredential();
+			}
+			else
+			{
+				FirebaseAuthSignUp(true);
+			}
 		}
 
-		private async Task FirebaseAuthSignUp()
+		private async Task FirebaseAuthSignUp(bool signUpToFirestore = false)
 		{
 			ObjectManager.Instance.Logs.text = "Creating User Account....";
 
@@ -201,7 +233,7 @@ namespace InGameMoney
 			
 			var newUser = task.Result;
 			ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
-			SignUpToFirestore();
+			if (signUpToFirestore) SignUpToFirestore(GetDefaultUserData());
 		}
 
 		public void OnButtonLoginFirebaseAuth()
@@ -233,6 +265,7 @@ namespace InGameMoney
 
 		private void Login()
 		{
+			SetAuthButtonInteraction();
 			canvasIap.SetActive(true);
 			_inputfMailAdress.interactable = false;
 			_inputfPassword.interactable = false;
@@ -251,6 +284,42 @@ namespace InGameMoney
 			_inputfMailAdress.interactable = true;
 			_inputfPassword.interactable = true;
 			OnLogout?.Invoke();
+		}
+		
+		private void LinkAuthCredential()
+		{
+			ObjectManager.Instance.Logs.text = "Linking Guest auth credential ...";
+			var credential = EmailAuthProvider.GetCredential(_inputfMailAdress.text, _inputfPassword.text);
+			var currentUser = auth.CurrentUser;
+
+			currentUser.LinkWithCredentialAsync(credential).ContinueWith(task =>
+			{
+				if (task.IsCanceled) {
+					ObjectManager.Instance.Logs.text = "LinkWithCredentialAsync was canceled.";
+					return;
+				}
+				if (task.IsFaulted) {
+					ObjectManager.Instance.Logs.text = $"LinkWithCredentialAsync encountered an error: {task.Exception}";
+					return;
+				}
+
+				var newUser = task.Result;
+				ObjectManager.Instance.Logs.text = $"Credentials successfully linked to Firebase userId {newUser.UserId}";
+				LinkAccountToFirestore();
+				SetAuthButtonInteraction();
+				canvasIap.SetActive(true);
+			}, TaskScheduler.FromCurrentSynchronizationContext());
+		}
+
+		private void LinkAccountToFirestore()
+		{
+			UserData.Instance.UpdateFirestoreUserDataAfterCredentialLinked(_inputfMailAdress.text, _inputfPassword.text);
+		}
+		
+		private void SetAuthButtonInteraction()
+		{
+			signInButton.interactable = false;
+			signUpButton.interactable = false;
 		}
 		
 		private static bool IsFaultedTask(Task<FirebaseUser> task, bool isLogin = false)
