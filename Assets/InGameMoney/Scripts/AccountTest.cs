@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
 using UnityEngine.Events;
-using Object = UnityEngine.Object;
+using UnityEngine.Serialization;
 
 #pragma warning disable 4014
 
@@ -15,10 +15,13 @@ namespace InGameMoney
 {
 	internal class AccountTest : MonoBehaviour
 	{
-		[SerializeField] InputField _inputfMailAdress;
-		[SerializeField] InputField _inputfPassword;
+		[FormerlySerializedAs("_inputfMailAdress")] [SerializeField]
+		private InputField inputfMailAdress;
+		[FormerlySerializedAs("_inputfPassword")] [SerializeField]
+		private InputField inputfPassword;
 		[SerializeField] private GameObject canvasIap;
-		[SerializeField] Toggle _autoLogin;
+		[FormerlySerializedAs("_autoLogin")] [SerializeField]
+		private Toggle autoLogin;
 		[SerializeField] private Button signInButton;
 		[SerializeField] private Button signOutButton;
 		[SerializeField] private Button signUpButton;
@@ -35,9 +38,9 @@ namespace InGameMoney
 		public static UnityAction OnLogout = null;
 		public static FirebaseFirestore Db => db;
 		public static IWriteUserData UserDataAccess;
-		public InputField InputFieldMailAddress => _inputfMailAdress;
-		public InputField InputFieldPassword => _inputfPassword;
-		public Toggle AutoLogin => _autoLogin;
+		public InputField InputFieldMailAddress => inputfMailAdress;
+		public InputField InputFieldPassword => inputfPassword;
+		public Toggle AutoLogin => autoLogin;
 		public GameObject CanvasIAP => canvasIap;
 		public Button SignInButton => signInButton;
 		public Button SignOutButton => signOutButton;
@@ -60,8 +63,8 @@ namespace InGameMoney
 			db = FirebaseFirestore.DefaultInstance;
 			userdata = UserData.Instance;
 			UserDataAccess = new UserDataAccess(userdata);
-			_inputfPassword.inputType = InputField.InputType.Password;
-			_inputfPassword.asteriskChar = "$!£%&*"[5];
+			inputfPassword.inputType = InputField.InputType.Password;
+			inputfPassword.asteriskChar = "$!£%&*"[5];
 			userdata.Init();
 
 			CurrentUserValidation();
@@ -84,7 +87,7 @@ namespace InGameMoney
 
 		public void SignOutBecauseLocalDataIsEmpty()
 		{
-			_autoLogin.isOn = false;
+			autoLogin.isOn = false;
 			auth?.SignOut();
 			ObjectManager.Instance.Logs.text = $"Sign Out: {auth?.CurrentUser}";
 			ObjectManager.Instance.InGameMoney.SetActive(false);
@@ -93,9 +96,9 @@ namespace InGameMoney
 
 		public void SetupUI(string emailAddress, string password, bool autoLogin)
 		{
-			_inputfMailAdress.text = emailAddress;
-			_inputfPassword.text = password;
-			_autoLogin.isOn = autoLogin;
+			inputfMailAdress.text = emailAddress;
+			inputfPassword.text = password;
+			this.autoLogin.isOn = autoLogin;
 			canvasIap.SetActive(false);
 
 			if (signedIn)
@@ -144,15 +147,15 @@ namespace InGameMoney
 
 		private void WriteUserData()
 		{
-			UserDataAccess.WriteData(_inputfMailAdress.text, _inputfPassword.text, _autoLogin.isOn);
+			UserDataAccess.WriteData(inputfMailAdress.text, inputfPassword.text, autoLogin.isOn);
 		}
 
 		private void ProceedAfterLogin()
 		{
 			SetAuthButtonInteraction();
 			canvasIap.SetActive(true);
-			_inputfMailAdress.interactable = false;
-			_inputfPassword.interactable = false;
+			inputfMailAdress.interactable = false;
+			inputfPassword.interactable = false;
 			OnLogin?.Invoke();
 		}
 
@@ -165,10 +168,10 @@ namespace InGameMoney
 
 		private async Task SignUpToFirestoreAsync(User data)
 		{
-			Assert.IsNotNull(_inputfMailAdress.text, "Email is Missing !");
-			Assert.IsNotNull(_inputfPassword.text, "Password is Missing");
+			Assert.IsNotNull(inputfMailAdress.text, "Email is Missing !");
+			Assert.IsNotNull(inputfPassword.text, "Password is Missing");
 			
-			var docRef = db.Collection("Users").Document(_inputfMailAdress.text);
+			var docRef = db.Collection("Users").Document(inputfMailAdress.text);
 			var task = docRef.SetAsync(data).ContinueWithOnMainThread(signUpTask => signUpTask);
 			if (task.IsCanceled)
 			{
@@ -186,7 +189,7 @@ namespace InGameMoney
 			if (task.IsCompleted)
 			{
 				ObjectManager.Instance.Logs.text =
-					$"SignUpToFirestore, New Data Added, Now You can read and update data using id : {_inputfMailAdress.text}";
+					$"SignUpToFirestore, New Data Added, Now You can read and update data using id : {inputfMailAdress.text}";
 			}
 		}
 
@@ -194,8 +197,8 @@ namespace InGameMoney
 		{
 			return new User
 			{
-				Email = _inputfMailAdress.text,
-				Password = _inputfPassword.text,
+				Email = inputfMailAdress.text,
+				Password = inputfPassword.text,
 				MoneyBalance = 0,
 				SignUpTimeStamp = FieldValue.ServerTimestamp
 			};
@@ -217,7 +220,7 @@ namespace InGameMoney
 		{
 			ObjectManager.Instance.Logs.text = "Creating User Account....";
 
-			var task = auth.CreateUserWithEmailAndPasswordAsync(_inputfMailAdress.text, _inputfPassword.text)
+			var task = auth.CreateUserWithEmailAndPasswordAsync(inputfMailAdress.text, inputfPassword.text)
 				.ContinueWithOnMainThread(signUpTask => signUpTask);
 
 			if (task.IsCanceled)
@@ -248,12 +251,12 @@ namespace InGameMoney
 		private async Task ProceedFirebaseAuthLogin()
 		{
 			ObjectManager.Instance.Logs.text = "Logging In User Account...";
-			var loginTask = auth.SignInWithEmailAndPasswordAsync(_inputfMailAdress.text, _inputfPassword.text)
+			var loginTask = auth.SignInWithEmailAndPasswordAsync(inputfMailAdress.text, inputfPassword.text)
 				.ContinueWithOnMainThread(task => task);
 
 			if (loginTask.IsCanceled)
 			{
-				ObjectManager.Instance.Logs.text = $"SignIn With email {_inputfMailAdress.text} And Password Async was canceled ";
+				ObjectManager.Instance.Logs.text = $"SignIn With email {inputfMailAdress.text} And Password Async was canceled ";
 				return;
 			}
 
@@ -270,8 +273,8 @@ namespace InGameMoney
 		{
 			SetAuthButtonInteraction();
 			canvasIap.SetActive(true);
-			_inputfMailAdress.interactable = false;
-			_inputfPassword.interactable = false;
+			inputfMailAdress.interactable = false;
+			inputfPassword.interactable = false;
 			OnLogin?.Invoke();
 		}
 
@@ -284,8 +287,8 @@ namespace InGameMoney
 		private void Logout()
 		{
 			canvasIap.SetActive(false);
-			_inputfMailAdress.interactable = true;
-			_inputfPassword.interactable = true;
+			inputfMailAdress.interactable = true;
+			inputfPassword.interactable = true;
 			signInButton.interactable = true;
 			registerGuestAccount.interactable = true;
 			OnLogout?.Invoke();
@@ -294,7 +297,7 @@ namespace InGameMoney
 		private void LinkAuthCredential()
 		{
 			ObjectManager.Instance.Logs.text = "Linking Guest auth credential ...";
-			var credential = EmailAuthProvider.GetCredential(_inputfMailAdress.text, _inputfPassword.text);
+			var credential = EmailAuthProvider.GetCredential(inputfMailAdress.text, inputfPassword.text);
 			var currentUser = auth.CurrentUser;
 
 			currentUser.LinkWithCredentialAsync(credential).ContinueWith(task =>
