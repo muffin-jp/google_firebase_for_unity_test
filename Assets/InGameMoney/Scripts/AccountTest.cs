@@ -24,16 +24,16 @@ namespace InGameMoney
 		[SerializeField] private Button signUpButton;
 		[SerializeField] private Button registerGuestAccount;
 
-		public static UnityAction OnLogin = null;
-		public static UnityAction OnLogout = null;
-		public static FirebaseFirestore Db => db;
-
 		private static FirebaseFirestore db;
 		private static UserData userdata;
 		private FirebaseAuth auth;
 		private FirebaseUser user;
 		private bool signedIn;
 		private static ITaskFault taskFault;
+		
+		public static UnityAction OnLogin = null;
+		public static UnityAction OnLogout = null;
+		public static FirebaseFirestore Db => db;
 		public static IWriteUserData UserDataAccess;
 		public InputField InputFieldMailAddress => _inputfMailAdress;
 		public InputField InputFieldPassword => _inputfPassword;
@@ -42,6 +42,9 @@ namespace InGameMoney
 		public Button SignInButton => signInButton;
 		public Button SignOutButton => signOutButton;
 		public Button SignUpButton => signUpButton;
+		public static UserData Userdata => userdata;
+		public bool SignedIn => signedIn;
+		public Button RegisterGuestAccount => registerGuestAccount;
 
 		public static AccountTest Instance { get; private set; }
 
@@ -66,39 +69,20 @@ namespace InGameMoney
 
 		private void CurrentUserValidation()
 		{
+			IAccountBase accountBase;
 			if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous)
 			{
-				if (string.IsNullOrEmpty(userdata.data.mailAddress) || string.IsNullOrEmpty(userdata.data.password))
-				{
-					SignOutBecauseLocalDataIsEmpty();
-					return;
-				}
-				
-				SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
-				Login();
+				accountBase = new Guest();
 			}
 			else
 			{
-				if (string.IsNullOrEmpty(userdata.data.mailAddress) || string.IsNullOrEmpty(userdata.data.password))
-				{
-					SignOutBecauseLocalDataIsEmpty();
-					return;
-				}
-
-				if (signedIn)
-				{
-					SetupUI(userdata.data.mailAddress, userdata.data.password, userdata.data.autoLogin);
-					registerGuestAccount.interactable = false;
-					if (_autoLogin.isOn)
-					{
-						ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
-						Login();
-					}
-				}
+				accountBase = new NonGuest();
 			}
+			
+			accountBase.Validate();
 		}
 
-		private void SignOutBecauseLocalDataIsEmpty()
+		public void SignOutBecauseLocalDataIsEmpty()
 		{
 			_autoLogin.isOn = false;
 			auth?.SignOut();
@@ -282,7 +266,7 @@ namespace InGameMoney
 			Login();
 		}
 
-		private void Login()
+		public void Login()
 		{
 			SetAuthButtonInteraction();
 			canvasIap.SetActive(true);
