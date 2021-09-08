@@ -42,6 +42,8 @@ namespace InGameMoney
             var newUser = task.Result;
             ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
             ProceedLogin();
+            var userData = AccountTest.Instance.GetDefaultUserData();
+            await AccountTest.Instance.SignUpToFirestoreProcedure(userData);
         }
 
         private static void ProceedLogin()
@@ -49,8 +51,6 @@ namespace InGameMoney
             ObjectManager.Instance.FirstBoot.SetActive(false);
             ObjectManager.Instance.InGameMoney.SetActive(true);
             AccountTest.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
-            var userData = AccountTest.Instance.GetDefaultUserData();
-            AccountTest.Instance.SignUpToFirestore(userData);
         }
     }
 }

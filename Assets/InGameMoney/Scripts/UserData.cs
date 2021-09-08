@@ -161,7 +161,7 @@ namespace InGameMoney {
 		});
 	}
 
-	public void UpdateFirestoreUserDataAfterCredentialLinked(string newEmail, string newPassword)
+	public void UpdateFirestoreUserDataAfterCredentialLinked()
 	{
 		UpdateFirestoreUserData();
 	}
@@ -177,8 +177,7 @@ namespace InGameMoney {
 			Password = AccountTest.Instance.InputFieldPassword.text,
 			SignUpTimeStamp = FieldValue.ServerTimestamp
 		};
-		AccountTest.Instance.SignUpToFirestore(newUserData);
-		UpdateLocalUserData();
+		AccountTest.Instance.SignUpToFirestoreProcedure(newUserData);
 	}
 
 	public enum Item {

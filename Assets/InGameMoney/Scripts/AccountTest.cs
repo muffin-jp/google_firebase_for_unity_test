@@ -172,36 +172,38 @@ namespace InGameMoney
 			OnLogin?.Invoke();
 		}
 
-		public void SignUpToFirestore(User data)
+		public async Task SignUpToFirestoreProcedure(User data)
+		{
+			await SignUpToFirestoreAsync(data);
+			WriteUserData();
+			ProceedAfterLogin();
+		}
+
+		private async Task SignUpToFirestoreAsync(User data)
 		{
 			Assert.IsNotNull(_inputfMailAdress.text, "Email is Missing !");
 			Assert.IsNotNull(_inputfPassword.text, "Password is Missing");
-
-			ObjectManager.Instance.Logs.text = "Adding Data ...";
+			
 			var docRef = db.Collection("Users").Document(_inputfMailAdress.text);
-
-			docRef.SetAsync(data).ContinueWithOnMainThread(task =>
+			var task = docRef.SetAsync(data).ContinueWithOnMainThread(signUpTask => signUpTask);
+			if (task.IsCanceled)
 			{
-				if (task.IsCanceled)
-				{
-					ObjectManager.Instance.Logs.text = "An Error Occurred !";
-					return;
-				}
+				ObjectManager.Instance.Logs.text = "Task IsCanceled !";
+			}
 
-				if (task.IsFaulted)
-				{
-					ObjectManager.Instance.Logs.text = "Add Data Failed Failed !";
-					return;
-				}
+			await task;
+			
+			if (task.IsFaulted)
+			{
+				ObjectManager.Instance.Logs.text = 
+					$"SignUp task is faulted ! Exception: {task.Exception} Result exception {task.Result.Exception}";
+			}
 
-				if (task.IsCompleted)
-				{
-					ObjectManager.Instance.Logs.text =
-						$"New Data Added, Now You can read and update data using id : {_inputfMailAdress.text}";
-					WriteUserData();
-					ProceedAfterLogin();
-				}
-			});
+			if (task.IsCompleted)
+			{
+				ObjectManager.Instance.Logs.text =
+					$"SignUpToFirestore, New Data Added, Now You can read and update data using id : {_inputfMailAdress.text}";
+			}
 		}
 
 		public User GetDefaultUserData()
@@ -223,11 +225,11 @@ namespace InGameMoney
 			}
 			else
 			{
-				FirebaseAuthSignUp(true);
+				FirebaseAuthSignUp();
 			}
 		}
 
-		private async Task FirebaseAuthSignUp(bool signUpToFirestore = false)
+		private async Task FirebaseAuthSignUp()
 		{
 			ObjectManager.Instance.Logs.text = "Creating User Account....";
 
@@ -241,12 +243,16 @@ namespace InGameMoney
 			}
 
 			await task;
-			
+
 			if (IsFaultedTask(task.Result)) return;
-			
+
 			var newUser = task.Result;
-			ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
-			if (signUpToFirestore) SignUpToFirestore(GetDefaultUserData());
+			ObjectManager.Instance.Logs.text =
+				$"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
+
+			await SignUpToFirestoreAsync(GetDefaultUserData());
+			WriteUserData();
+			ProceedAfterLogin();
 		}
 
 		public void OnButtonLoginFirebaseAuth()
@@ -322,13 +328,12 @@ namespace InGameMoney
 				ObjectManager.Instance.Logs.text = $"Credentials successfully linked to Firebase userId {newUser.UserId}";
 				LinkAccountToFirestore();
 				SetAuthButtonInteraction();
-				canvasIap.SetActive(true);
 			}, TaskScheduler.FromCurrentSynchronizationContext());
 		}
 
-		private void LinkAccountToFirestore()
+		private static void LinkAccountToFirestore()
 		{
-			UserData.Instance.UpdateFirestoreUserDataAfterCredentialLinked(_inputfMailAdress.text, _inputfPassword.text);
+			UserData.Instance.UpdateFirestoreUserDataAfterCredentialLinked();
 		}
 		
 		private void SetAuthButtonInteraction()
