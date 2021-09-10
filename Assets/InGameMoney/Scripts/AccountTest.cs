@@ -1,5 +1,11 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
+using AppleAuth;
+using AppleAuth.Enums;
+using AppleAuth.Extensions;
+using AppleAuth.Interfaces;
+using AppleAuth.Native;
 using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.Firestore;
@@ -33,7 +39,8 @@ namespace InGameMoney
 		private FirebaseUser user;
 		private bool signedIn;
 		private static ITaskFault taskFault;
-		
+		private IAppleAuthManager appleAuthManager;
+
 		public static UnityAction OnLogin = null;
 		public static UnityAction OnLogout = null;
 		public static FirebaseFirestore Db => db;
@@ -48,6 +55,7 @@ namespace InGameMoney
 		public static UserData Userdata => userdata;
 		public bool SignedIn => signedIn;
 		public Button RegisterGuestAccount => registerGuestAccount;
+		public const string AppleUserIdKey = "AppleUserId";
 
 		public static AccountTest Instance { get; private set; }
 
@@ -79,13 +87,32 @@ namespace InGameMoney
 			}
 			else
 			{
-				accountBase = new NonGuest();
+				// If the current platform is supported
+				if (AppleAuthManager.IsCurrentPlatformSupported)
+				{
+					accountBase = new AppleAuth();
+					appleAuthManager = ((AppleAuth) accountBase).AppleAuthManager;
+				}
+				else 
+					accountBase = new NonGuest();
 			}
 			
 			accountBase.Validate();
 		}
 
+		private void Update()
+		{
+			// Updates the AppleAuthManager instance to execute
+			// pending callbacks inside Unity's execution loop
+			appleAuthManager?.Update();
+		}
+
 		public void SignOutBecauseLocalDataIsEmpty()
+		{
+			SignOut();
+		}
+
+		public void SignOut()
 		{
 			autoLogin.isOn = false;
 			auth?.SignOut();
@@ -328,6 +355,60 @@ namespace InGameMoney
 			signInButton.interactable = false;
 			signUpButton.interactable = false;
 			signOutButton.interactable = true;
+		}
+
+		public void OnSignInWithAppleButton()
+		{	
+			SignInWithApple();
+		}
+
+		private void SignInWithApple()
+		{
+			var loginArgs = new AppleAuthLoginArgs(LoginOptions.IncludeEmail | LoginOptions.IncludeFullName);
+			ObjectManager.Instance.FirstBootLogs.text = $"SignInWithApple... {loginArgs.Options}";
+			appleAuthManager.LoginWithAppleId(
+				loginArgs,
+				credential =>
+				{
+					// Obtained credential, cast it to IAppleIDCredential
+					var appleIdCredential = credential as IAppleIDCredential;
+					if (appleIdCredential != null)
+					{
+						// Apple User ID
+						// You should save the user ID somewhere in the device
+						var userId = appleIdCredential.User;
+						PlayerPrefs.SetString(AppleUserIdKey, userId);
+
+						// Email (Received ONLY in the first login)
+						var email = appleIdCredential.Email;
+
+						// Full name (Received ONLY in the first login)
+						var fullName = appleIdCredential.FullName;
+
+						// Identity token
+						var identityToken = Encoding.UTF8.GetString(
+							appleIdCredential.IdentityToken,
+							0,
+							appleIdCredential.IdentityToken.Length);
+
+						// Authorization code
+						var authorizationCode = Encoding.UTF8.GetString(
+							appleIdCredential.AuthorizationCode,
+							0,
+							appleIdCredential.AuthorizationCode.Length);
+
+						ObjectManager.Instance.FirstBootLogs.text = $"Succeed SignInWithApple userId {userId} " +
+						                                            $"email {email} fullName {fullName}" +
+						                                            $"identityToken {identityToken} " +
+						                                            $"authorizationCode {authorizationCode}";
+					}
+					else ObjectManager.Instance.FirstBootLogs.text = $"appleIdCredential is null";
+
+				}, error =>
+				{
+					ObjectManager.Instance.FirstBootLogs.text =
+						$"Error SignInWithApple {error.GetAuthorizationErrorCode()}";
+				});
 		}
 		
 		private static bool IsFaultedTask(Task<FirebaseUser> task, bool isLogin = false)
