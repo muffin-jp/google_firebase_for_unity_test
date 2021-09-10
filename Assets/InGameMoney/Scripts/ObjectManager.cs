@@ -7,6 +7,7 @@ namespace InGameMoney
     {
         [SerializeField] private PurchaseTest purchase;
         [SerializeField] private Text logs;
+        [SerializeField] private Text firstBootLogs;
         [SerializeField] private ShopTest shop;
         [SerializeField] private GameObject inGameMoney;
         [SerializeField] private GameObject firstBoot;
@@ -15,6 +16,7 @@ namespace InGameMoney
         public Text Logs => logs;
         public GameObject InGameMoney => inGameMoney;
         public GameObject FirstBoot => firstBoot;
+        public Text FirstBootLogs => firstBootLogs;
         
         public ShopTest Shop => shop;
         public static ObjectManager Instance { get; private set; }

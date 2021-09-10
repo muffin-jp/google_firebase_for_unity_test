@@ -11,6 +11,7 @@ namespace InGameMoney
         {
             auth = FirebaseAuth.DefaultInstance;
             userData = AccountTest.Userdata;
+            ObjectManager.Instance.FirstBootLogs.text = $"New NonGuest AppName {auth.App.Name}";
         }
         
         public void Validate()
