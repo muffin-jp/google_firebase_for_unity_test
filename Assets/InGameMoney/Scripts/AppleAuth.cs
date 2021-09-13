@@ -30,18 +30,6 @@ namespace InGameMoney
                 return;
             }
 
-            if (AccountTest.Instance.SignedIn)
-            {
-                AccountTest.Instance.SetupUI(userData.data.mailAddress, userData.data.password, userData.data.autoLogin);
-                AccountTest.Instance.RegisterGuestAccount.interactable = false;
-                if (AccountTest.Instance.AutoLogin.isOn)
-                {
-                    ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
-                    AccountTest.Instance.Login();
-                }
-                return;
-            }
-            
             InitializeLoginMenu();
         }
 
@@ -72,7 +60,7 @@ namespace InGameMoney
             else
             {
                 ObjectManager.Instance.FirstBootLogs.text = "we do not have an stored Apple User Id, attempt a quick login";
-                AttemptQuickLogin();
+                AccountTest.Instance.PerformQuickLoginWithFirebase(userData);
             }
         }
 
@@ -116,6 +104,7 @@ namespace InGameMoney
                         // If it's authorized, login with that user id
                         case CredentialState.Authorized:
                             ObjectManager.Instance.FirstBootLogs.text = $"Authorized {appleUserId}";
+                            AccountTest.Instance.SetupLogin(userData);
                             return;
                         
                         // If it was revoked, or not found, we need a new sign in with apple attempt
@@ -124,7 +113,6 @@ namespace InGameMoney
                         case CredentialState.NotFound:
                             ObjectManager.Instance.FirstBootLogs.text = $"CredentialState Revoked or NotFound  {appleUserId}";
                             AccountTest.Instance.SignOut();
-                            PlayerPrefs.DeleteKey(AccountTest.AppleUserIdKey);
                             return;
                         case CredentialState.Transferred:
                             ObjectManager.Instance.FirstBootLogs.text = "CredentialState.Transferred";
