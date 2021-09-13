@@ -20,11 +20,7 @@ namespace InGameMoney
         {
             auth = FirebaseAuth.DefaultInstance;
             userData = AccountTest.Userdata;
-            // Creates a default JSON deserializer, to transform JSON Native responses to C# instances
-            var deserializer = new PayloadDeserializer();
-            // Creates an Apple Authentication manager with the deserializer
-            appleAuthManager = new AppleAuthManager(deserializer);
-            ObjectManager.Instance.FirstBootLogs.text = $"New AppleAuth {appleAuthManager}";
+            ObjectManager.Instance.FirstBootLogs.text = $"New AppleAuth";
         }
         public void Validate()
         {

@@ -240,12 +240,13 @@ namespace InGameMoney {
 	{
 		var usersRef = AccountTest.Db.Collection("Users").Document(_data.mailAddress);
 		var task = usersRef.GetSnapshotAsync().ContinueWithOnMainThread(readTask => readTask);
-		if (task.IsCanceled) 
-			ObjectManager.Instance.Logs.text = "An Error Occurred !";
 
 		await task;
 		
-		if (task.IsFaulted) 
+		if (task.Result.IsCanceled) 
+			ObjectManager.Instance.Logs.text = "An Error Occurred !";
+		
+		if (task.Result.IsFaulted) 
 			ObjectManager.Instance.Logs.text = "Add Data Failed Failed !";
 		
 		var snapshot = task.Result.Result;

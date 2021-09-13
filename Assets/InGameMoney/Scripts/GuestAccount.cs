@@ -27,14 +27,14 @@ namespace InGameMoney
             ObjectManager.Instance.Logs.text = "Creating Gust User Account....";
             var task = auth.SignInAnonymouslyAsync().ContinueWith(signInTask => signInTask);
 
-            if (task.IsCanceled)
+            await task;
+            
+            if (task.Result.IsCanceled)
             {
                 ObjectManager.Instance.Logs.text = "SignInAnonymouslyAsync was canceled.";
             }
-
-            await task;
             
-            if (task.IsFaulted)
+            if (task.Result.IsFaulted)
             {
                 ObjectManager.Instance.Logs.text = $"SignInAnonymouslyAsync encountered an error: {task.Exception}";
             }

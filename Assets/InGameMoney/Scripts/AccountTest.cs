@@ -102,7 +102,20 @@ namespace InGameMoney
 			inputfPassword.asteriskChar = "$!£%&*"[5];
 			userdata.Init();
 
+			AppleAuthValidation();
 			InitializeAuthentication();
+		}
+
+		private void AppleAuthValidation()
+		{
+			if (AppleAuthManager.IsCurrentPlatformSupported)
+			{
+				// Creates a default JSON deserializer, to transform JSON Native responses to C# instances
+				var deserializer = new PayloadDeserializer();
+				// Creates an Apple Authentication manager with the deserializer
+				appleAuthManager = new AppleAuthManager(deserializer);
+				ObjectManager.Instance.FirstBootLogs.text = "AppleAuthValidation is called";
+			}
 		}
 
 		private void InitializeAuthentication()
@@ -115,10 +128,9 @@ namespace InGameMoney
 			else
 			{
 				// If the current platform is supported
-				if (PlayerPrefs.HasKey(AppleUserIdKey) && AppleAuthManager.IsCurrentPlatformSupported)
+				if (PlayerPrefs.HasKey(AppleUserIdKey))
 				{
 					accountBase = new AppleAuth();
-					appleAuthManager = ((AppleAuth) accountBase).AppleAuthManager;
 				}
 				else 
 					accountBase = new NonGuest();
@@ -202,20 +214,21 @@ namespace InGameMoney
 			
 			var docRef = db.Collection("Users").Document(inputfMailAdress.text);
 			var task = docRef.SetAsync(data).ContinueWithOnMainThread(signUpTask => signUpTask);
-			if (task.IsCanceled)
-			{
-				ObjectManager.Instance.Logs.text = "Task IsCanceled !";
-			}
 
 			await task;
 			
-			if (task.IsFaulted)
+			if (task.Result.IsCanceled)
+			{
+				ObjectManager.Instance.Logs.text = "Task IsCanceled !";
+			}
+			
+			if (task.Result.IsFaulted)
 			{
 				ObjectManager.Instance.Logs.text = 
 					$"SignUp task is faulted ! Exception: {task.Exception} Result exception {task.Result.Exception}";
 			}
 
-			if (task.IsCompleted)
+			if (task.Result.IsCompleted)
 			{
 				ObjectManager.Instance.Logs.text =
 					$"SignUpToFirestore, New Data Added, Now You can read and update data using id : {inputfMailAdress.text}";
@@ -252,13 +265,13 @@ namespace InGameMoney
 			var task = auth.CreateUserWithEmailAndPasswordAsync(inputfMailAdress.text, inputfPassword.text)
 				.ContinueWithOnMainThread(signUpTask => signUpTask);
 
-			if (task.IsCanceled)
+			await task;
+
+			if (task.Result.IsCanceled)
 			{
 				ObjectManager.Instance.Logs.text = "Create User With Email And Password was canceled.";
 				return;
 			}
-
-			await task;
 
 			if (IsFaultedTask(task.Result)) return;
 
@@ -282,14 +295,14 @@ namespace InGameMoney
 			ObjectManager.Instance.Logs.text = "Logging In User Account...";
 			var loginTask = auth.SignInWithEmailAndPasswordAsync(inputfMailAdress.text, inputfPassword.text)
 				.ContinueWithOnMainThread(task => task);
+			
+			await loginTask;
 
-			if (loginTask.IsCanceled)
+			if (loginTask.Result.IsCanceled)
 			{
 				ObjectManager.Instance.Logs.text = $"SignIn With email {inputfMailAdress.text} And Password Async was canceled ";
 				return;
 			}
-
-			await loginTask;
 			
 			if (IsFaultedTask(loginTask.Result, true)) return;
 			
@@ -412,7 +425,7 @@ namespace InGameMoney
 						$"Error SignInWithApple {error.GetAuthorizationErrorCode()}";
 				});
 		}
-		
+
 		private static bool IsFaultedTask(Task<FirebaseUser> task, bool isLogin = false)
 		{
 			if (!isLogin)
