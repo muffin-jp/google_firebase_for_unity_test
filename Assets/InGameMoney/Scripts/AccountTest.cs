@@ -56,6 +56,7 @@ namespace InGameMoney
 		public bool SignedIn => signedIn;
 		public Button RegisterGuestAccount => registerGuestAccount;
 		public const string AppleUserIdKey = "AppleUserId";
+		public IAppleAuthManager IAppleAuthManager => appleAuthManager;
 
 		public static AccountTest Instance { get; private set; }
 
@@ -65,7 +66,33 @@ namespace InGameMoney
 			else Instance = this;
 			InitializeFirebase();
 		}
+		
+		private void InitializeFirebase ()
+		{
+			// FirebaseAuth.DefaultInstanceはSignOutしない限り最後ログインしているユーザーを維持する
+			auth = FirebaseAuth.DefaultInstance;
+			auth.StateChanged += AuthStateChanged;
+			AuthStateChanged (this, null);
+		}
 
+		private void AuthStateChanged(object sender, EventArgs eventArgs)
+		{
+			if (auth.CurrentUser != user) {
+				// SignOutしない限りCurrentUserはnullではない
+				signedIn = user != auth.CurrentUser && auth.CurrentUser != null;
+				user = auth.CurrentUser;
+				switch (signedIn)
+				{
+					case false when user != null:
+						ObjectManager.Instance.Logs.text = $"Signed out {user?.UserId}";
+						break;
+					case true:
+						ObjectManager.Instance.Logs.text = $"Current user id {user?.UserId}";
+						break;
+				}
+			}
+		}
+		
 		private void Start()
 		{
 			db = FirebaseFirestore.DefaultInstance;
@@ -75,10 +102,10 @@ namespace InGameMoney
 			inputfPassword.asteriskChar = "$!£%&*"[5];
 			userdata.Init();
 
-			CurrentUserValidation();
+			InitializeAuthentication();
 		}
 
-		private void CurrentUserValidation()
+		private void InitializeAuthentication()
 		{
 			IAccountBase accountBase;
 			if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous)
@@ -88,7 +115,7 @@ namespace InGameMoney
 			else
 			{
 				// If the current platform is supported
-				if (AppleAuthManager.IsCurrentPlatformSupported)
+				if (PlayerPrefs.HasKey(AppleUserIdKey) && AppleAuthManager.IsCurrentPlatformSupported)
 				{
 					accountBase = new AppleAuth();
 					appleAuthManager = ((AppleAuth) accountBase).AppleAuthManager;
@@ -139,31 +166,6 @@ namespace InGameMoney
 			ObjectManager.Instance.FirstBoot.SetActive(false);
 			ObjectManager.Instance.InGameMoney.SetActive(true);
 			signUpButton.interactable = false;
-		}
-		
-		private void InitializeFirebase ()
-		{
-			// FirebaseAuth.DefaultInstanceはSignOutしない限り最後ログインしているユーザーを維持する
-			auth = FirebaseAuth.DefaultInstance;
-			auth.StateChanged += AuthStateChanged;
-			AuthStateChanged (this, null);
-		}
-
-		private void AuthStateChanged(object sender, EventArgs eventArgs)
-		{
-			if (auth.CurrentUser != user) {
-				signedIn = user != auth.CurrentUser && auth.CurrentUser != null;
-				user = auth.CurrentUser;
-				switch (signedIn)
-				{
-					case false when user != null:
-						ObjectManager.Instance.Logs.text = $"Signed out {user?.UserId}";
-						break;
-					case true:
-						ObjectManager.Instance.Logs.text = $"Current user id {user?.UserId}";
-						break;
-				}
-			}
 		}
 
 		private void OnApplicationQuit()

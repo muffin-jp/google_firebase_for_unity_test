@@ -1,4 +1,6 @@
 using Firebase.Auth;
+using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace InGameMoney
 {
@@ -24,6 +26,8 @@ namespace InGameMoney
 
             if (AccountTest.Instance.SignedIn)
             {
+                // Need to delete apple user id key before using email to sign in
+                Assert.IsFalse(PlayerPrefs.HasKey(AccountTest.AppleUserIdKey));
                 AccountTest.Instance.SetupUI(userData.data.mailAddress, userData.data.password, userData.data.autoLogin);
                 AccountTest.Instance.RegisterGuestAccount.interactable = false;
                 if (AccountTest.Instance.AutoLogin.isOn)

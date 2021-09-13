@@ -36,7 +36,14 @@ namespace InGameMoney
 
             if (AccountTest.Instance.SignedIn)
             {
-                // TODO: Proceed Login
+                AccountTest.Instance.SetupUI(userData.data.mailAddress, userData.data.password, userData.data.autoLogin);
+                AccountTest.Instance.RegisterGuestAccount.interactable = false;
+                if (AccountTest.Instance.AutoLogin.isOn)
+                {
+                    ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
+                    AccountTest.Instance.Login();
+                }
+                return;
             }
             
             InitializeLoginMenu();
