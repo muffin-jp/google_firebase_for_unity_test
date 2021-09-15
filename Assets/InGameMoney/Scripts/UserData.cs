@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Firebase.Extensions;
 using Firebase.Firestore;
+using UnityEngine;
 using UnityEngine.Assertions;
 #pragma warning disable 4014
 
@@ -57,17 +58,21 @@ namespace InGameMoney {
 		AccountTest.OnLogout += OnLogout;
 	}
 
-	void OnLogin()
+	private void OnLogin()
 	{
 		if ( null != _personalData ) return;
 		_personalData = PersonalData.Read();
+	}
 
+	public void UpdateLocalData()
+	{
 		UpdateLocalUserData();
 		UpdatePurchaseAndShop();
 	}
 
 	private static void UpdateLocalUserData()
 	{
+		Debug.Log($">>>> UpdateLocalUserData HasKey FirebaseSignedWithAppleKey {PlayerPrefs.HasKey(AccountTest.FirebaseSignedWithAppleKey)}");
 		IWriteUserData writeUserData = AccountTest.UserDataAccess;
 		var mailAddress = AccountTest.Instance.InputFieldMailAddress.text;
 		var password = AccountTest.Instance.InputFieldPassword.text;
@@ -177,7 +182,8 @@ namespace InGameMoney {
 			Password = AccountTest.Instance.InputFieldPassword.text,
 			SignUpTimeStamp = FieldValue.ServerTimestamp
 		};
-		AccountTest.Instance.SignUpToFirestoreProcedure(newUserData);
+		await AccountTest.Instance.SignUpToFirestoreProcedure(newUserData);
+		UpdateLocalData();
 	}
 
 	public enum Item {
@@ -238,6 +244,7 @@ namespace InGameMoney {
 
 	private async Task<User> GetUserData()
 	{
+		Debug.Log($">>>> GetUserData _data == null {_data == null} mailAddress {_data.mailAddress}");
 		var usersRef = AccountTest.Db.Collection("Users").Document(_data.mailAddress);
 		var task = usersRef.GetSnapshotAsync().ContinueWithOnMainThread(readTask => readTask);
 

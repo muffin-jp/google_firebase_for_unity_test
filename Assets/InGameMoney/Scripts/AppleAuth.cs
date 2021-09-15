@@ -16,10 +16,11 @@ namespace InGameMoney
         private readonly IAppleAuthManager appleAuthManager;
         public IAppleAuthManager AppleAuthManager => appleAuthManager;
 
-        public AppleAuth()
+        public AppleAuth(IAppleAuthManager appleAuthManager)
         {
             auth = FirebaseAuth.DefaultInstance;
             userData = AccountTest.Userdata;
+            this.appleAuthManager = appleAuthManager;
             ObjectManager.Instance.FirstBootLogs.text = $"New AppleAuth";
         }
         public void Validate()
@@ -35,16 +36,17 @@ namespace InGameMoney
 
         private void InitializeLoginMenu()
         {
+            Debug.Log($">>>>> InitializeLoginMenu");
             if (appleAuthManager == null)
             {
-                ObjectManager.Instance.FirstBootLogs.text = $"Initialize appleAuthManager is null, Unsupported platform";
+                Debug.Log($">>>>> Initialize appleAuthManager is null, Unsupported platform");
                 return;
             }
             
             // If at any point we receive a credentials revoked notification, we delete the stored User ID, and go back to login
             appleAuthManager.SetCredentialsRevokedCallback(result =>
             {
-                ObjectManager.Instance.FirstBootLogs.text = $"Received revoked callback {result}";
+                Debug.Log($">>>>>Received revoked callback {result}");
                 AccountTest.Instance.SignOut();
                 PlayerPrefs.DeleteKey(AccountTest.AppleUserIdKey);
             });
@@ -52,14 +54,14 @@ namespace InGameMoney
             // If we have an Apple User Id available, get the credential status for it
             if (PlayerPrefs.HasKey(AccountTest.AppleUserIdKey))
             {
-                ObjectManager.Instance.FirstBootLogs.text = $"We have an Apple User Id available, get the credential status for it";
+                Debug.Log($">>>>> We have an Apple User Id available, get the credential status for it");
                 var storedAppleUserId = PlayerPrefs.GetString(AccountTest.AppleUserIdKey);
                 CheckCredentialStatusForUserId(storedAppleUserId);
             }
             // If we do not have an stored Apple User Id, attempt a quick login
             else
             {
-                ObjectManager.Instance.FirstBootLogs.text = "we do not have an stored Apple User Id, attempt a quick login";
+                Debug.Log($">>>>> we do not have an stored Apple User Id, attempt a quick login");
                 AccountTest.Instance.PerformQuickLoginWithFirebase(userData);
             }
         }
@@ -103,16 +105,17 @@ namespace InGameMoney
                     {
                         // If it's authorized, login with that user id
                         case CredentialState.Authorized:
-                            ObjectManager.Instance.FirstBootLogs.text = $"Authorized {appleUserId}";
-                            AccountTest.Instance.SetupLogin(userData);
+                            Debug.Log($">>>>> CheckCredentialStatusForUserId Authorized {appleUserId}");
+                            AccountTest.Instance.LoginByAppleId();
                             return;
                         
                         // If it was revoked, or not found, we need a new sign in with apple attempt
                         // Discard previous apple user id
                         case CredentialState.Revoked:
                         case CredentialState.NotFound:
-                            ObjectManager.Instance.FirstBootLogs.text = $"CredentialState Revoked or NotFound  {appleUserId}";
+                            Debug.Log($">>>>> CheckCredentialStatusForUserId CredentialState Revoked or NotFound  {appleUserId}");
                             AccountTest.Instance.SignOut();
+                            PlayerPrefs.DeleteKey(AccountTest.AppleUserIdKey);
                             return;
                         case CredentialState.Transferred:
                             ObjectManager.Instance.FirstBootLogs.text = "CredentialState.Transferred";

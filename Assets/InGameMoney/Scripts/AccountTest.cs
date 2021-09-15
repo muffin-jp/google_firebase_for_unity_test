@@ -40,7 +40,7 @@ namespace InGameMoney
 		private bool signedIn;
 		private static ITaskFault taskFault;
 		private IAppleAuthManager appleAuthManager;
-		private const string FirebaseSignedWithAppleKey = "FirebaseSignedWithApple";
+		public const string FirebaseSignedWithAppleKey = "FirebaseSignedWithApple";
 
 		public static UnityAction OnLogin = null;
 		public static UnityAction OnLogout = null;
@@ -130,7 +130,7 @@ namespace InGameMoney
 				}
 				else if (PlayerPrefs.HasKey(FirebaseSignedWithAppleKey))
 				{
-					accountBase = new AppleAuth();
+					accountBase = new AppleAuth(appleAuthManager);
 				}
 				else
 				{
@@ -160,7 +160,6 @@ namespace InGameMoney
 			ObjectManager.Instance.Logs.text = $"Sign Out: {auth?.CurrentUser}";
 			ObjectManager.Instance.InGameMoney.SetActive(false);
 			ObjectManager.Instance.FirstBoot.SetActive(true);
-			PlayerPrefs.DeleteKey(AppleUserIdKey);
 			PlayerPrefs.DeleteKey(FirebaseSignedWithAppleKey);
 		}
 
@@ -187,38 +186,34 @@ namespace InGameMoney
 		private void OnApplicationQuit()
 		{
 			OnLogout?.Invoke();
-			WriteUserData();
+			if (!PlayerPrefs.HasKey(FirebaseSignedWithAppleKey))
+			{
+				WriteUserData();
+			}
 		}
 
-		private void WriteUserData()
+		public void WriteUserData(User data = null)
 		{
-			UserDataAccess.WriteData(inputfMailAdress.text, inputfPassword.text, autoLogin.isOn);
-		}
-
-		private void ProceedAfterLogin()
-		{
-			SetAuthButtonInteraction();
-			canvasIap.SetActive(true);
-			inputfMailAdress.interactable = false;
-			inputfPassword.interactable = false;
-			OnLogin?.Invoke();
+			if (data == null)
+				UserDataAccess.WriteData(inputfMailAdress.text, inputfPassword.text, autoLogin.isOn);
+			else
+			{
+				UserDataAccess.WriteData(data.Email, data.Password, autoLogin.isOn);
+			}
 		}
 
 		public async Task SignUpToFirestoreProcedure(User data)
 		{
 			await SignUpToFirestoreAsync(data);
 			WriteUserData();
-			ProceedAfterLogin();
+			Login();
 		}
 
-		private async Task SignUpToFirestoreAsync(User data)
+		public async Task SignUpToFirestoreAsync(User data)
 		{
-			Assert.IsNotNull(inputfMailAdress.text, "Email is Missing !");
-			Assert.IsNotNull(inputfPassword.text, "Password is Missing");
-			
-			var docRef = db.Collection("Users").Document(inputfMailAdress.text);
+			var docRef = db.Collection("Users").Document(data.Email);
 			var task = docRef.SetAsync(data).ContinueWithOnMainThread(signUpTask => signUpTask);
-
+			
 			await task;
 			
 			if (task.Result.IsCanceled)
@@ -228,19 +223,22 @@ namespace InGameMoney
 			
 			if (task.Result.IsFaulted)
 			{
-				ObjectManager.Instance.Logs.text = 
+				ObjectManager.Instance.FirstBootLogs.text = 
 					$"SignUp task is faulted ! Exception: {task.Exception} Result exception {task.Result.Exception}";
 			}
 
 			if (task.Result.IsCompleted)
 			{
-				ObjectManager.Instance.Logs.text =
-					$"SignUpToFirestore, New Data Added, Now You can read and update data using id : {inputfMailAdress.text}";
+				ObjectManager.Instance.FirstBootLogs.text =
+					$"SignUpToFirestore, New Data Added, Now You can read and update data using Email : {data.Email}";
 			}
+			Debug.Log($">>>> SignUpToFirestoreAsync task.Result.IsCompleted {task.Result.IsCompleted}");
 		}
 
 		public User GetDefaultUserData()
 		{
+			Assert.IsNotNull(inputfMailAdress.text, "Email is Missing !");
+			Assert.IsNotNull(inputfPassword.text, "Password is Missing");
 			return new User
 			{
 				Email = inputfMailAdress.text,
@@ -258,11 +256,11 @@ namespace InGameMoney
 			}
 			else
 			{
-				FirebaseAuthSignUp();
+				FirebaseEmailAuthSignUp();
 			}
 		}
 
-		private async Task FirebaseAuthSignUp()
+		private async Task FirebaseEmailAuthSignUp()
 		{
 			ObjectManager.Instance.Logs.text = "Creating User Account....";
 
@@ -285,16 +283,16 @@ namespace InGameMoney
 
 			await SignUpToFirestoreAsync(GetDefaultUserData());
 			WriteUserData();
-			ProceedAfterLogin();
+			Login();
 		}
 
 		public void OnButtonLoginFirebaseAuth()
 		{
 			ObjectManager.Instance.Logs.text = "Logging In User Account...";
-			ProceedFirebaseAuthLogin();
+			FirebaseEmailAuthLogin();
 		}
 
-		private async Task ProceedFirebaseAuthLogin()
+		private async Task FirebaseEmailAuthLogin()
 		{
 			ObjectManager.Instance.Logs.text = "Logging In User Account...";
 			var loginTask = auth.SignInWithEmailAndPasswordAsync(inputfMailAdress.text, inputfPassword.text)
@@ -312,7 +310,9 @@ namespace InGameMoney
 			
 			var login = loginTask.Result;
 			ObjectManager.Instance.Logs.text = $"Account Logged In, your user ID: {login.Result.UserId}";
+			WriteUserData();
 			Login();
+			UserData.Instance.UpdateLocalData();
 		}
 
 		public void Login()
@@ -378,58 +378,7 @@ namespace InGameMoney
 
 		public void OnSignInWithAppleButton()
 		{	
-			SignInWithApple();
-		}
-
-		private void SignInWithApple()
-		{
-			var loginArgs = new AppleAuthLoginArgs(LoginOptions.IncludeEmail | LoginOptions.IncludeFullName);
-			ObjectManager.Instance.FirstBootLogs.text = $"SignInWithApple... {loginArgs.Options}";
-			appleAuthManager.LoginWithAppleId(
-				loginArgs,
-				credential =>
-				{
-					// Obtained credential, cast it to IAppleIDCredential
-					var appleIdCredential = credential as IAppleIDCredential;
-					if (appleIdCredential != null)
-					{
-						// Apple User ID
-						// You should save the user ID somewhere in the device
-						var userId = appleIdCredential.User;
-						PlayerPrefs.SetString(AppleUserIdKey, userId);
-
-						// Email (Received ONLY in the first login)
-						var email = appleIdCredential.Email;
-
-						// Full name (Received ONLY in the first login)
-						var fullName = appleIdCredential.FullName;
-
-						// Identity token
-						var identityToken = Encoding.UTF8.GetString(
-							appleIdCredential.IdentityToken,
-							0,
-							appleIdCredential.IdentityToken.Length);
-
-						// Authorization code
-						var authorizationCode = Encoding.UTF8.GetString(
-							appleIdCredential.AuthorizationCode,
-							0,
-							appleIdCredential.AuthorizationCode.Length);
-
-						ObjectManager.Instance.FirstBootLogs.text = $"Succeed SignInWithApple userId {userId} " +
-						                                            $"email {email} fullName {fullName}" +
-						                                            $"identityToken {identityToken} " +
-						                                            $"authorizationCode {authorizationCode}";
-
-						PerformLoginWithAppleIdAndFirebase();
-					}
-					else ObjectManager.Instance.FirstBootLogs.text = $"appleIdCredential is null";
-
-				}, error =>
-				{
-					ObjectManager.Instance.FirstBootLogs.text =
-						$"Error SignInWithApple {error.GetAuthorizationErrorCode()}";
-				});
+			PerformLoginWithAppleIdAndFirebase();
 		}
 
 		private void PerformLoginWithAppleIdAndFirebase()
@@ -448,6 +397,8 @@ namespace InGameMoney
 				{
 					if (credential is IAppleIDCredential appleIdCredential)
 					{
+						var userId = appleIdCredential.User;
+						PlayerPrefs.SetString(AppleUserIdKey, userId);
 						PerformFirebaseAppleAuthentication(appleIdCredential, rawNonce);
 					}
 				},
@@ -469,7 +420,7 @@ namespace InGameMoney
 				{
 					if (credential is IAppleIDCredential appleIDCredential)
 					{
-						PerformFirebaseAppleAuthentication(appleIDCredential, rawNonce, userData);
+						PerformFirebaseAppleAuthentication(appleIDCredential, rawNonce, userData, true);
 					}
 				},
 				error =>
@@ -481,8 +432,10 @@ namespace InGameMoney
 		private async void PerformFirebaseAppleAuthentication(
 			IAppleIDCredential appleIdCredential,
 			string rawNonce,
-			UserData userData = null)
+			UserData userData = null, 
+			bool fromQuickLogin = false)
 		{
+			Debug.Log($">>>>> PerformFirebaseAppleAuthentication fromQuickLogin {fromQuickLogin}");
 			ObjectManager.Instance.FirstBootLogs.text = $"PerformFirebaseAuthentication found token {appleIdCredential.IdentityToken}";
 			var firebaseAppleCredential = GetFirebaseAppleCredential(appleIdCredential, rawNonce);
 			
@@ -495,15 +448,15 @@ namespace InGameMoney
 			{
 				ObjectManager.Instance.FirstBootLogs.text = "Firebase auth was canceled";
 			}
-			else if (signInTask.Result.IsFaulted)
+			else if (IsFaultedTask(signInTask.Result, true))
 			{
-				ObjectManager.Instance.FirstBootLogs.text = "Firebase auth failed";
+				ObjectManager.Instance.FirstBootLogs.text = $"Firebase auth failed {signInTask.Result.Exception}";
 			}
 			else
 			{
 				var newUser = signInTask.Result.Result;
 				PlayerPrefs.SetString(FirebaseSignedWithAppleKey, "Yes");
-				ObjectManager.Instance.FirstBootLogs.text = $"Firebase SignInWithCredentialAsync apple succeed " + $"DisplayName {newUser.DisplayName} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(FirebaseSignedWithAppleKey)}";
+				ObjectManager.Instance.FirstBootLogs.text = $"Firebase SignInWithCredentialAsync apple succeed signedIn {signedIn} " + $"DisplayName {newUser.DisplayName} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(FirebaseSignedWithAppleKey)}";
 				
 				var data = new User
 				{
@@ -513,15 +466,17 @@ namespace InGameMoney
 					SignUpTimeStamp = FieldValue.ServerTimestamp
 				};
 
-				if (signedIn)
-				{
-					SetupLogin(userData);
-					return;
-				}
 				await SignUpToFirestoreAsync(data);
-				WriteUserData();
-				ProceedAfterLogin();
+				WriteUserData(data);
+				LoginByAppleId();
 			}
+		}
+
+		public void LoginByAppleId()
+		{
+			Login();
+			OpenLoginView();
+			RegisterGuestAccount.interactable = false;
 		}
 
 		private static Credential GetFirebaseAppleCredential(IAppleIDCredential appleIdCredential, string rawNonce)

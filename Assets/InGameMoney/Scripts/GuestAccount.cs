@@ -19,10 +19,10 @@ namespace InGameMoney
 
         public void OnGuestLoginButton()
         {
-            SignInAnonymous();
+            SignUpUsingAnonymous();
         }
 
-        private async void SignInAnonymous()
+        private async void SignUpUsingAnonymous()
         {
             ObjectManager.Instance.Logs.text = "Creating Gust User Account....";
             var task = auth.SignInAnonymouslyAsync().ContinueWith(signInTask => signInTask);
@@ -43,7 +43,9 @@ namespace InGameMoney
             ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
             ProceedLogin();
             var userData = AccountTest.Instance.GetDefaultUserData();
-            await AccountTest.Instance.SignUpToFirestoreProcedure(userData);
+            await AccountTest.Instance.SignUpToFirestoreAsync(userData);
+            AccountTest.Instance.WriteUserData();
+            AccountTest.Instance.Login();
         }
 
         private static void ProceedLogin()
