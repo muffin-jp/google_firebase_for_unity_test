@@ -14,6 +14,7 @@ namespace InGameMoney
             AccountTest.Instance.InputFieldPassword.text = "";
             AccountTest.Instance.InputFieldMailAddress.interactable = true;
             AccountTest.Instance.InputFieldPassword.interactable = true;
+            AccountTest.Instance.GoToSignUpOptionView(true);
             gameObject.SetActive(false);
         }
     }
