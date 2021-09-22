@@ -11,11 +11,11 @@ namespace InGameMoney
 
         public void WriteData(string mailAddress, string password, bool autoLogin)
         {
-            if (userData?.data == null) return;
-            userData.data.mailAddress = mailAddress;
-            userData.data.password = password;
-            userData.data.autoLogin = autoLogin;
-            userData.data.Write();
+            if (userData?.AccountData == null) return;
+            userData.AccountData.mailAddress = mailAddress;
+            userData.AccountData.password = password;
+            userData.AccountData.autoLogin = autoLogin;
+            userData.AccountData.Write();
         }
     }
 }

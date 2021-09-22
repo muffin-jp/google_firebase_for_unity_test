@@ -393,7 +393,7 @@ namespace InGameMoney
 
 		public void SetupLogin(UserData userData)
 		{
-			SetupUI(userData.data.mailAddress, userData.data.password, userData.data.autoLogin);
+			SetupUI(userData.AccountData.mailAddress, userData.AccountData.password, userData.AccountData.autoLogin);
 			registerGuestAccount.interactable = false;
 			if (AutoLogin.isOn)
 			{

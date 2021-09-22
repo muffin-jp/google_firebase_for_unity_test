@@ -27,8 +27,8 @@ namespace InGameMoney {
 		public void Write() { JsonTool.Write(path, this); }
 #endregion
 	}
-	Data _data;
-	public Data data => _data;
+	Data accountData;
+	public Data AccountData => accountData;
 	
 	public class PersonalData {
 		public int purchasedMoney;
@@ -42,17 +42,17 @@ namespace InGameMoney {
 		public void Write() { JsonTool.Write(path, this); }
 #endregion
 	}
-	PersonalData _personalData;
+	PersonalData personalData;
 	private long moneyBalance;
-	public int purchasedMoney => _personalData.purchasedMoney;
-	public bool unlockedA => _personalData.unlockedA;
-	public bool unlockedB => _personalData.unlockedB;
-	public bool unlockedC => _personalData.unlockedC;
+	public int purchasedMoney => personalData.purchasedMoney;
+	public bool unlockedA => personalData.unlockedA;
+	public bool unlockedB => personalData.unlockedB;
+	public bool unlockedC => personalData.unlockedC;
 
 	public void Init()
 	{
-		if ( null != _data ) return;
-		_data = Data.Read();
+		if ( null != accountData ) return;
+		accountData = Data.Read();
 		
 		AccountTest.OnLogin += OnLogin;
 		AccountTest.OnLogout += OnLogout;
@@ -60,8 +60,8 @@ namespace InGameMoney {
 
 	private void OnLogin()
 	{
-		if ( null != _personalData ) return;
-		_personalData = PersonalData.Read();
+		if ( null != personalData ) return;
+		personalData = PersonalData.Read();
 	}
 
 	public void UpdateLocalData()
@@ -84,27 +84,27 @@ namespace InGameMoney {
 	{
 		await ReadUserData();
 
-		_personalData.purchasedMoney = (int) moneyBalance;
-		_personalData.Write();
+		personalData.purchasedMoney = (int) moneyBalance;
+		personalData.Write();
 		ObjectManager.Instance.Purchase.UpdateText();
 		ObjectManager.Instance.Shop.UpdateText();
 	}
 
 	void OnLogout()
 	{
-		_personalData?.Write();
-		_personalData = null;
+		personalData?.Write();
+		personalData = null;
 	}
 
 	public void BuyMoney(int value)
 	{
 		ObjectManager.Instance.Logs.text = $"Buying {value} Money ... ";
-		var buyId = $"{_data.mailAddress} Money-{value}-{System.DateTime.Now:HH:mm:ss:tt}";
+		var buyId = $"{accountData.mailAddress} Money-{value}-{System.DateTime.Now:HH:mm:ss:tt}";
 		var docRef = AccountTest.Db.Collection("UserMoney")
 			.Document($"{buyId}");
 		var userMoney = new UserMoney
 		{
-			Email = _data.mailAddress,
+			Email = accountData.mailAddress,
 			PurchasedMoney = value,
 			PurchasedTimeStamp = FieldValue.ServerTimestamp
 		};
@@ -131,15 +131,15 @@ namespace InGameMoney {
 
 	private void CompletePurchaseMoney(int value)
 	{
-		_personalData.purchasedMoney += value;
-		_personalData.Write();
-		UpdateUserMoneyBalance(_personalData.purchasedMoney);
+		personalData.purchasedMoney += value;
+		personalData.Write();
+		UpdateUserMoneyBalance(personalData.purchasedMoney);
 	}
 
 	private void UpdateUserMoneyBalance(int moneyBalance)
 	{
 		ObjectManager.Instance.Logs.text = $"Updating User Money Balance ...";
-		var docRef = AccountTest.Db.Collection("Users").Document(_data.mailAddress);
+		var docRef = AccountTest.Db.Collection("Users").Document(accountData.mailAddress);
 		var updates = new Dictionary<string, object>
 		{
 			{"MoneyBalance", moneyBalance}
@@ -194,28 +194,28 @@ namespace InGameMoney {
 
 	private bool AbleToPayMoney(int value, Item item)
 	{
-		if ( _personalData.purchasedMoney < value ) return false;
-		_personalData.purchasedMoney -= value;
+		if ( personalData.purchasedMoney < value ) return false;
+		personalData.purchasedMoney -= value;
 
 		switch ( item ) {
 		case Item.UnlockA:
 			{
-				_personalData.unlockedA = true;
+				personalData.unlockedA = true;
 			}
 			break;
 		case Item.UnlockB:
 			{
-				_personalData.unlockedB = true;
+				personalData.unlockedB = true;
 			}
 			break;
 		case Item.UnlockC:
 			{
-				_personalData.unlockedC = true;
+				personalData.unlockedC = true;
 			}
 			break;
 		}
 
-		_personalData.Write();
+		personalData.Write();
 		return true;
 	}
 
@@ -224,11 +224,11 @@ namespace InGameMoney {
 		await ReadUserData();
 
 		ObjectManager.Instance.Logs.text = $"MoneyBalance: {moneyBalance}";
-		_personalData.purchasedMoney = (int) moneyBalance;
+		personalData.purchasedMoney = (int) moneyBalance;
 		if (AbleToPayMoney(value, item))
 		{
 			PurchaseItem(value, item);
-			UpdateUserMoneyBalance(_personalData.purchasedMoney);
+			UpdateUserMoneyBalance(personalData.purchasedMoney);
 			ObjectManager.Instance.Shop.UpdateText();
 		}
 		else ObjectManager.Instance.Logs.text = $"Not Enough money to buy {item}";
@@ -244,8 +244,8 @@ namespace InGameMoney {
 
 	private async Task<User> GetUserData()
 	{
-		Debug.Log($">>>> GetUserData _data == null {_data == null} mailAddress {_data.mailAddress}");
-		var usersRef = AccountTest.Db.Collection("Users").Document(_data.mailAddress);
+		Debug.Log($">>>> GetUserData _data == null {accountData == null} mailAddress {accountData.mailAddress}");
+		var usersRef = AccountTest.Db.Collection("Users").Document(accountData.mailAddress);
 		var task = usersRef.GetSnapshotAsync().ContinueWithOnMainThread(readTask => readTask);
 
 		await task;
@@ -271,11 +271,11 @@ namespace InGameMoney {
 	private void PurchaseItem(int value, Item item)
 	{
 		ObjectManager.Instance.Logs.text = $"Purchase {item}";
-		var docId = $"{_data.mailAddress} Item-{item}-{System.DateTime.Now:HH:mm:ss:tt}";;
+		var docId = $"{accountData.mailAddress} Item-{item}-{System.DateTime.Now:HH:mm:ss:tt}";;
 		var docRef = AccountTest.Db.Collection("UserPurchasedItems").Document(docId);
 		var purchasedItem = new UserPurchasedItems
 		{
-			Email = _data.mailAddress,
+			Email = accountData.mailAddress,
 			PurchasedItem = item.ToString(),
 			Price = value,
 			PurchasedTimeStamp = FieldValue.ServerTimestamp
