@@ -57,10 +57,6 @@ namespace InGameMoney
 		public Button RegisterGuestAccount => registerGuestAccount;
 		public static UserData Userdata => userdata;
 		public bool SignedIn => signedIn;
-		public bool LinkGuestAccount
-		{
-			set => linkGuestAccount = value;
-		}
 
 		public const string AppleUserIdKey = "AppleUserId";
 
@@ -168,9 +164,8 @@ namespace InGameMoney
 			PlayerPrefs.DeleteKey(FirebaseSignedWithAppleKey);
 		}
 
-		public void GoToSignUpOptionView(bool linkGuestAccount = false)
+		public void GoToSignUpOptionView()
 		{
-			this.linkGuestAccount = linkGuestAccount;
 			ObjectManager.Instance.InGameMoney.SetActive(false);
 			ObjectManager.Instance.FirstBoot.SetActive(true);
 		}
@@ -184,11 +179,11 @@ namespace InGameMoney
 
 			if (signedIn)
 			{
-				OpenLoginView();
+				OpenGameView();
 			}
 		}
 		
-		public void OpenLoginView()
+		public void OpenGameView()
 		{
 			ObjectManager.Instance.FirstBoot.SetActive(false);
 			ObjectManager.Instance.InGameMoney.SetActive(true);
@@ -393,7 +388,7 @@ namespace InGameMoney
 			if (!AppleAuthManager.IsCurrentPlatformSupported) return;
 			var appleAuth = new AppleAuth(appleAuthManager);
 			
-			appleAuth.PerformLoginWithAppleIdAndFirebase(linkGuestAccount);
+			appleAuth.PerformLoginWithAppleIdAndFirebase();
 		}
 
 		public void SetupLogin(UserData userData)

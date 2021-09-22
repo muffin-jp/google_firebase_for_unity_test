@@ -107,7 +107,7 @@ namespace InGameMoney
                 });
         }
         
-        public void PerformLoginWithAppleIdAndFirebase(bool linkGuestAccount)
+        public void PerformLoginWithAppleIdAndFirebase()
         {
             ObjectManager.Instance.FirstBootLogs.text = $"PerformLoginWithAppleIdAndFirebase";
             var rawNonce = AuthUtility.GenerateRandomString(32);
@@ -125,7 +125,7 @@ namespace InGameMoney
                     {
                         var userId = appleIdCredential.User;
                         PlayerPrefs.SetString(AccountTest.AppleUserIdKey, userId);
-                        PerformFirebaseAppleAuthentication(appleIdCredential, rawNonce, false, linkGuestAccount);
+                        PerformFirebaseAppleAuthentication(appleIdCredential, rawNonce, false);
                     }
                 },
                 error =>
@@ -158,14 +158,13 @@ namespace InGameMoney
         private async void PerformFirebaseAppleAuthentication(
             IAppleIDCredential appleIdCredential,
             string rawNonce, 
-            bool fromQuickLogin = false,
-            bool linkGuestAccount = false)
+            bool fromQuickLogin = false)
         {
             Debug.Log($">>>>> PerformFirebaseAppleAuthentication fromQuickLogin {fromQuickLogin}");
             ObjectManager.Instance.FirstBootLogs.text = $"PerformFirebaseAuthentication found token {appleIdCredential.IdentityToken}";
             var firebaseAppleCredential = GetFirebaseAppleCredential(appleIdCredential, rawNonce);
 
-            if (linkGuestAccount)
+            if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous)
             {
                 LinkGuestAccountWithApple(firebaseAppleCredential);
             }
@@ -229,7 +228,7 @@ namespace InGameMoney
                     Debug.Log($"Credentials successfully linked to Firebase userId {newUser.UserId}");
                     AccountTest.LinkAccountToFirestore(newUser.Email, $"vw-apple-pass@{newUser.UserId}");
                     AccountTest.Instance.SetAuthButtonInteraction();
-                    AccountTest.Instance.LinkGuestAccount = false;
+                    AccountTest.Instance.OpenGameView();
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             
         }
@@ -250,7 +249,7 @@ namespace InGameMoney
         private static void LoginByAppleId()
         {
             AccountTest.Instance.Login();
-            AccountTest.Instance.OpenLoginView();
+            AccountTest.Instance.OpenGameView();
             AccountTest.Instance.RegisterGuestAccount.interactable = false;
         }
     }
