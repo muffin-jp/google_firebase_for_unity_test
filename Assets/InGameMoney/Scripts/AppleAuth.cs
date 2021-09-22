@@ -1,10 +1,13 @@
 using System;
+using System.Text;
+using System.Threading.Tasks;
 using AppleAuth;
 using AppleAuth.Enums;
 using AppleAuth.Extensions;
 using AppleAuth.Interfaces;
-using AppleAuth.Native;
 using Firebase.Auth;
+using Firebase.Extensions;
+using Firebase.Firestore;
 using UnityEngine;
 
 namespace InGameMoney
@@ -25,7 +28,7 @@ namespace InGameMoney
         }
         public void Validate()
         {
-            if (string.IsNullOrEmpty(userData.data.mailAddress) || string.IsNullOrEmpty(userData.data.password))
+            if (!AccountTest.Instance.SignedIn && (string.IsNullOrEmpty(userData.data.mailAddress) || string.IsNullOrEmpty(userData.data.password)))
             {
                 AccountTest.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
@@ -62,36 +65,8 @@ namespace InGameMoney
             else
             {
                 Debug.Log($">>>>> we do not have an stored Apple User Id, attempt a quick login");
-                AccountTest.Instance.PerformQuickLoginWithFirebase(userData);
+                PerformQuickLoginWithFirebase();
             }
-        }
-
-        private void AttemptQuickLogin()
-        {
-            var quickLoginArgs = new AppleAuthQuickLoginArgs();
-            
-            // Quick login should succeed if the credential was authorized before and not revoked
-            appleAuthManager.QuickLogin(
-                quickLoginArgs,
-                credential =>
-                {
-                    // If it's an Apple credential, save the user ID, for later logins
-                    if (credential is IAppleIDCredential appleIdCredential)
-                    {
-                        ObjectManager.Instance.FirstBootLogs.text = $"Quick login appleIdCredential " +
-                                                                    $"User {appleIdCredential.User} \n" +
-                                                                    $"RealUserStatus{appleIdCredential.RealUserStatus} \n" +
-                                                                    $"Email {appleIdCredential.Email} \n" +
-                                                                    $"FullName {appleIdCredential.FullName}";
-                        PlayerPrefs.SetString(AccountTest.AppleUserIdKey, credential.User);
-                    }
-                },
-                error =>
-                {
-                    // If Quick Login fails, we should show the normal sign in with apple menu, to allow for a normal Sign In with apple
-                    var authorizationErrorCode = error.GetAuthorizationErrorCode();
-                    ObjectManager.Instance.FirstBootLogs.text = $"Quick Login Failed authorizationErrorCode {authorizationErrorCode} error {error}";
-                });
         }
 
         private void CheckCredentialStatusForUserId(string appleUserId)
@@ -106,7 +81,7 @@ namespace InGameMoney
                         // If it's authorized, login with that user id
                         case CredentialState.Authorized:
                             Debug.Log($">>>>> CheckCredentialStatusForUserId Authorized {appleUserId}");
-                            AccountTest.Instance.LoginByAppleId();
+                            LoginByAppleId();
                             return;
                         
                         // If it was revoked, or not found, we need a new sign in with apple attempt
@@ -130,6 +105,153 @@ namespace InGameMoney
                     ObjectManager.Instance.FirstBootLogs.text = $"Error while trying to get credential state {authorizationErrorCode} {error}";
                     AccountTest.Instance.SignOut();
                 });
+        }
+        
+        public void PerformLoginWithAppleIdAndFirebase(bool linkGuestAccount)
+        {
+            ObjectManager.Instance.FirstBootLogs.text = $"PerformLoginWithAppleIdAndFirebase";
+            var rawNonce = AuthUtility.GenerateRandomString(32);
+            var nonce = AuthUtility.GenerateSHA256NonceFromRawNonce(rawNonce);
+
+            var loginArgs = new AppleAuthLoginArgs(
+                LoginOptions.IncludeEmail | LoginOptions.IncludeFullName,
+                nonce);
+			
+            appleAuthManager.LoginWithAppleId(
+                loginArgs,
+                credential =>
+                {
+                    if (credential is IAppleIDCredential appleIdCredential)
+                    {
+                        var userId = appleIdCredential.User;
+                        PlayerPrefs.SetString(AccountTest.AppleUserIdKey, userId);
+                        PerformFirebaseAppleAuthentication(appleIdCredential, rawNonce, false, linkGuestAccount);
+                    }
+                },
+                error =>
+                {
+                    ObjectManager.Instance.FirstBootLogs.text = $"PerformLoginWithAppleIdAndFirebase error {error}";
+                });
+        }
+        
+        private void PerformQuickLoginWithFirebase()
+        {
+            var rawNonce = AuthUtility.GenerateRandomString(32);
+            var nonce = AuthUtility.GenerateSHA256NonceFromRawNonce(rawNonce);
+            var quickLoginArgs = new AppleAuthQuickLoginArgs(nonce);
+			
+            appleAuthManager.QuickLogin(
+                quickLoginArgs,
+                credential =>
+                {
+                    if (credential is IAppleIDCredential appleIDCredential)
+                    {
+                        PerformFirebaseAppleAuthentication(appleIDCredential, rawNonce, true);
+                    }
+                },
+                error =>
+                {
+                    ObjectManager.Instance.FirstBootLogs.text = $"Perform QuickLogin WithFirebase error {error}";
+                });
+        }
+        
+        private async void PerformFirebaseAppleAuthentication(
+            IAppleIDCredential appleIdCredential,
+            string rawNonce, 
+            bool fromQuickLogin = false,
+            bool linkGuestAccount = false)
+        {
+            Debug.Log($">>>>> PerformFirebaseAppleAuthentication fromQuickLogin {fromQuickLogin}");
+            ObjectManager.Instance.FirstBootLogs.text = $"PerformFirebaseAuthentication found token {appleIdCredential.IdentityToken}";
+            var firebaseAppleCredential = GetFirebaseAppleCredential(appleIdCredential, rawNonce);
+
+            if (linkGuestAccount)
+            {
+                LinkGuestAccountWithApple(firebaseAppleCredential);
+            }
+            else
+            {
+                SignInWithCredential(firebaseAppleCredential);
+            }
+        }
+
+        private async void SignInWithCredential(Credential firebaseAppleCredential)
+        {
+            var signInTask = auth.SignInWithCredentialAsync(firebaseAppleCredential)
+                .ContinueWithOnMainThread(task => task);
+
+            await signInTask;
+			
+            if (signInTask.Result.IsCanceled)
+            {
+                ObjectManager.Instance.FirstBootLogs.text = "Firebase auth was canceled";
+            }
+            else if (AccountTest.IsFaultedTask(signInTask.Result, true))
+            {
+                ObjectManager.Instance.FirstBootLogs.text = $"Firebase auth failed {signInTask.Result.Exception}";
+            }
+            else
+            {
+                var newUser = signInTask.Result.Result;
+                PlayerPrefs.SetString(AccountTest.FirebaseSignedWithAppleKey, "Yes");
+                ObjectManager.Instance.FirstBootLogs.text = $"Firebase SignInWithCredentialAsync apple succeed signedIn {AccountTest.Instance.SignedIn} " + $"DisplayName {newUser.DisplayName} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(AccountTest.FirebaseSignedWithAppleKey)}";
+				
+                var data = new User
+                {
+                    Email = newUser.Email,
+                    MoneyBalance = 0,
+                    Password = $"vw-apple-pass@{newUser.UserId}",
+                    SignUpTimeStamp = FieldValue.ServerTimestamp
+                };
+
+                await AccountTest.Instance.SignUpToFirestoreAsync(data);
+                AccountTest.Instance.WriteUserData(data);
+                LoginByAppleId();
+            }
+        }
+
+        private void LinkGuestAccountWithApple(Credential firebaseAppleCredential)
+        {
+            var currentUser = auth.CurrentUser;
+            currentUser.LinkWithCredentialAsync(firebaseAppleCredential)
+                .ContinueWith(task =>
+                {
+                    if (task.IsCanceled) {
+                        Debug.Log( $">>>> LinkWithCredentialAsync was canceled.");
+                        return;
+                    }
+                    if (task.IsFaulted) {
+                        Debug.Log( $">>>> LinkWithCredentialAsync encountered an error: {task.Exception}");
+                        return;
+                    }
+
+                    var newUser = task.Result;
+                    Debug.Log($"Credentials successfully linked to Firebase userId {newUser.UserId}");
+                    AccountTest.LinkAccountToFirestore(newUser.Email, $"vw-apple-pass@{newUser.UserId}");
+                    AccountTest.Instance.SetAuthButtonInteraction();
+                    AccountTest.Instance.LinkGuestAccount = false;
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            
+        }
+
+        private static Credential GetFirebaseAppleCredential(IAppleIDCredential appleIdCredential, string rawNonce)
+        {
+            var identityToken = Encoding.UTF8.GetString(appleIdCredential.IdentityToken);
+            var authorizationCode = Encoding.UTF8.GetString(appleIdCredential.AuthorizationCode);
+            var firebaseAppleCredential = OAuthProvider.GetCredential(
+                "apple.com",
+                identityToken,
+                rawNonce,
+                authorizationCode);
+            Debug.Log($">>>>>>> GetFirebaseAppleCredential firebaseAppleCredential.IsValid() {firebaseAppleCredential.IsValid()}");
+            return firebaseAppleCredential;
+        }
+        
+        private static void LoginByAppleId()
+        {
+            AccountTest.Instance.Login();
+            AccountTest.Instance.OpenLoginView();
+            AccountTest.Instance.RegisterGuestAccount.interactable = false;
         }
     }
 }

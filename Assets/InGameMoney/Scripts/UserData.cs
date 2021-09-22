@@ -166,20 +166,20 @@ namespace InGameMoney {
 		});
 	}
 
-	public void UpdateFirestoreUserDataAfterCredentialLinked()
+	public void UpdateFirestoreUserDataAfterCredentialLinked(string email, string password)
 	{
-		UpdateFirestoreUserData();
+		UpdateFirestoreUserData(email, password);
 	}
 
-	private async Task UpdateFirestoreUserData()
+	private async Task UpdateFirestoreUserData(string email, string password)
 	{
 		ObjectManager.Instance.Logs.text = $"Updating User data, such as email and password, etc";
 		var oldUserData = await GetUserData();
 		var newUserData = new User
 		{
-			Email = AccountTest.Instance.InputFieldMailAddress.text,
+			Email = email,
 			MoneyBalance = oldUserData.MoneyBalance,
-			Password = AccountTest.Instance.InputFieldPassword.text,
+			Password = password,
 			SignUpTimeStamp = FieldValue.ServerTimestamp
 		};
 		await AccountTest.Instance.SignUpToFirestoreProcedure(newUserData);

@@ -42,7 +42,7 @@ namespace InGameMoney
             var newUser = task.Result;
             ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
             ProceedLogin();
-            var userData = AccountTest.Instance.GetDefaultUserData();
+            var userData = AccountTest.Instance.GetDefaultUserDataFromInputField();
             await AccountTest.Instance.SignUpToFirestoreAsync(userData);
             AccountTest.Instance.WriteUserData();
             AccountTest.Instance.Login();
