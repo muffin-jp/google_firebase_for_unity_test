@@ -15,7 +15,7 @@ namespace InGameMoney
         
         public void Validate()
         {
-            if (string.IsNullOrEmpty(userData.data.mailAddress) || string.IsNullOrEmpty(userData.data.password))
+            if (!AccountTest.Instance.SignedIn && (string.IsNullOrEmpty(userData.data.mailAddress) || string.IsNullOrEmpty(userData.data.password)))
             {
                 AccountTest.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
