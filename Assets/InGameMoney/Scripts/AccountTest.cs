@@ -160,11 +160,11 @@ namespace InGameMoney
 			autoLogin.isOn = false;
 			auth?.SignOut();
 			ObjectManager.Instance.Logs.text = $"Sign Out: {auth?.CurrentUser}";
-			GoToSignUpOptionView();
+			OpenSignUpOptionView();
 			PlayerPrefs.DeleteKey(FirebaseSignedWithAppleKey);
 		}
 
-		public void GoToSignUpOptionView()
+		public static void OpenSignUpOptionView()
 		{
 			ObjectManager.Instance.InGameMoney.SetActive(false);
 			ObjectManager.Instance.FirstBoot.SetActive(true);
@@ -202,10 +202,10 @@ namespace InGameMoney
 		public void WriteUserData(User data = null)
 		{
 			if (data == null)
-				UserDataAccess.WriteData(inputfMailAdress.text, inputfPassword.text, autoLogin.isOn);
+				UserDataAccess?.WriteData(inputfMailAdress.text, inputfPassword.text, autoLogin.isOn);
 			else
 			{
-				UserDataAccess.WriteData(data.Email, data.Password, autoLogin.isOn);
+				UserDataAccess?.WriteData(data.Email, data.Password, autoLogin.isOn);
 			}
 		}
 
@@ -335,6 +335,7 @@ namespace InGameMoney
 		{
 			auth.SignOut();
 			Logout();
+			OpenSignUpOptionView();
 		}
 
 		private void Logout()

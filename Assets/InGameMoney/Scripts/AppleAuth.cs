@@ -155,12 +155,12 @@ namespace InGameMoney
                 });
         }
         
-        private async void PerformFirebaseAppleAuthentication(
+        private void PerformFirebaseAppleAuthentication(
             IAppleIDCredential appleIdCredential,
             string rawNonce, 
             bool fromQuickLogin = false)
         {
-            Debug.Log($">>>>> PerformFirebaseAppleAuthentication fromQuickLogin {fromQuickLogin}");
+            Debug.Log($">>>> PerformFirebaseAppleAuthentication fromQuickLogin {fromQuickLogin}");
             ObjectManager.Instance.FirstBootLogs.text = $"PerformFirebaseAuthentication found token {appleIdCredential.IdentityToken}";
             var firebaseAppleCredential = GetFirebaseAppleCredential(appleIdCredential, rawNonce);
 

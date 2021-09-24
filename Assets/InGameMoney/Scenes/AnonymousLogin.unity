@@ -212,7 +212,7 @@ GameObject:
   - component: {fileID: 123310878}
   - component: {fileID: 123310877}
   m_Layer: 5
-  m_Name: Take Over
+  m_Name: Sign In or Take Over
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -563,7 +563,7 @@ GameObject:
   - component: {fileID: 254893316}
   - component: {fileID: 254893315}
   m_Layer: 5
-  m_Name: Take Over
+  m_Name: Sign In
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -620,7 +620,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Take Over\uFF08\u5F15\u304D\u7D99\u304E\uFF09"
+  m_Text: "Sign In\uFF08\u5F15\u304D\u7D99\u304E\uFF09"
 --- !u!222 &254893316
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5668,7 +5668,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Email Sign Up
+  m_Text: Sign Up With Email
 --- !u!1 &3466035551888335925
 GameObject:
   m_ObjectHideFlags: 0
@@ -5950,7 +5950,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Sign In With Apple
+  m_Text: Sign Up With Apple
 --- !u!114 &7422497972503656748
 MonoBehaviour:
   m_ObjectHideFlags: 0
