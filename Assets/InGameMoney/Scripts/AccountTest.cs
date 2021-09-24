@@ -193,7 +193,7 @@ namespace InGameMoney
 
 		private void OnApplicationQuit()
 		{
-			UserDataAccess.WritePersonalData();
+			UserDataAccess?.WritePersonalData();
 			if (!PlayerPrefs.HasKey(FirebaseSignedWithAppleKey))
 			{
 				WriteUserData();
@@ -226,19 +226,19 @@ namespace InGameMoney
 			
 			if (task.Result.IsCanceled)
 			{
-				ObjectManager.Instance.Logs.text = "Task IsCanceled !";
+				Debug.Log(">>>> Task IsCanceled !");
 			}
 			
 			if (task.Result.IsFaulted)
 			{
-				ObjectManager.Instance.FirstBootLogs.text = 
-					$"SignUp task is faulted ! Exception: {task.Exception} Result exception {task.Result.Exception}";
+				Debug.Log(
+					$">>>> SignUp task is faulted ! Exception: {task.Exception} Result exception {task.Result.Exception}");
 			}
 
 			if (task.Result.IsCompleted)
 			{
-				ObjectManager.Instance.FirstBootLogs.text =
-					$"SignUpToFirestore, New Data Added, Now You can read and update data using Email : {data.Email}";
+				Debug.Log(
+					$">>>> SignUpToFirestore, New Data Added, Now You can read and update data using Email : {data.Email}");
 			}
 			Debug.Log($">>>> SignUpToFirestoreAsync task.Result.IsCompleted {task.Result.IsCompleted}");
 		}

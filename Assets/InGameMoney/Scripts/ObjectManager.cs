@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,6 +35,13 @@ namespace InGameMoney
         public Text MoneyBalanceText => moneyBalanceText;
         
         public const string PurchasedMoneyPrefix = "Purchased Money :";
+        private Action<User> firestoreAction;
+        private Func<User, Task> firestoreAsyncAction;
+        public Func<User, Task> FirestoreAsyncAction
+        {
+            get => firestoreAsyncAction;
+            set => firestoreAsyncAction = value;
+        }
 
         private void Awake()
         {
@@ -45,11 +53,18 @@ namespace InGameMoney
         private void Start()
         {
             AddListenerToButtons();
+            AddActions();
+        }
+
+        private void AddActions()
+        {
+            firestoreAsyncAction = firestoreAction.ToAsync();
+            firestoreAsyncAction = AccountTest.Instance.SignUpToFirestoreAsync;
         }
 
         private void AddListenerToButtons()
         {
-            // SignUpSignInButton will act as SignUp button as default, unless SignIn is clicked
+            // Note SignUpSignInButton will act as SignUp button as default, until SignIn is clicked
             var signUpEmailButton = signUpSignInWithEmailButton;
             signUpEmailButton.onClick.AddListener(OnButtonSignUpWithEmail);
         }

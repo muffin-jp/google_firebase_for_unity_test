@@ -183,17 +183,17 @@ namespace InGameMoney
 			
             if (signInTask.Result.IsCanceled)
             {
-                ObjectManager.Instance.FirstBootLogs.text = "Firebase auth was canceled";
+                Debug.Log(">>>> Firebase auth was canceled");
             }
             else if (AccountTest.IsFaultedTask(signInTask.Result, true))
             {
-                ObjectManager.Instance.FirstBootLogs.text = $"Firebase auth failed {signInTask.Result.Exception}";
+                Debug.Log($">>>> Firebase auth failed {signInTask.Result.Exception}");
             }
             else
             {
                 var newUser = signInTask.Result.Result;
                 PlayerPrefs.SetString(AccountTest.FirebaseSignedWithAppleKey, "Yes");
-                ObjectManager.Instance.FirstBootLogs.text = $"Firebase SignInWithCredentialAsync apple succeed signedIn {AccountTest.Instance.SignedIn} " + $"DisplayName {newUser.DisplayName} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(AccountTest.FirebaseSignedWithAppleKey)}";
+                Debug.Log($">>>> Firebase SignInWithCredentialAsync apple succeed signedIn {AccountTest.Instance.SignedIn} " + $"DisplayName {newUser.DisplayName} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(AccountTest.FirebaseSignedWithAppleKey)}");
 				
                 var data = new User
                 {
@@ -203,7 +203,7 @@ namespace InGameMoney
                     SignUpTimeStamp = FieldValue.ServerTimestamp
                 };
 
-                await AccountTest.Instance.SignUpToFirestoreAsync(data);
+                await ObjectManager.Instance.FirestoreAsyncAction(data);
                 AccountTest.Instance.WriteUserData(data);
                 LoginByAppleId();
             }

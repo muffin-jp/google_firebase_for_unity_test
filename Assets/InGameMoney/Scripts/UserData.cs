@@ -42,8 +42,6 @@ namespace InGameMoney {
 	}
 	Data accountData;
 	public Data AccountData => accountData;
-	
-	
 
 	private PersonalData personalData;
 	public PersonalData PersonalData
@@ -189,18 +187,29 @@ namespace InGameMoney {
 
 	public void UpdateFirestoreUserDataAfterCredentialLinked(string email, string password)
 	{
-		UpdateFirestoreUserData(email, password);
-	}
-
-	private async Task UpdateFirestoreUserData(string email, string password)
-	{
-		ObjectManager.Instance.Logs.text = $"Updating User data, such as email and password, etc";
-		var oldUserData = await GetUserData();
-		var newUserData = new User
+		var user = new User
 		{
 			Email = email,
-			MoneyBalance = oldUserData.MoneyBalance,
-			Password = password,
+			Password = password
+		};
+		UpdateWithPreviousData(user);
+	}
+
+	private async void UpdateWithPreviousData(User user)
+	{
+		await UpdateFirestoreUserData(user);
+		Debug.Log($">>>> Finish UpdateWithPreviousData");
+	}
+
+	public async Task UpdateFirestoreUserData(User user)
+	{
+		ObjectManager.Instance.Logs.text = $"Updating User data, such as email and password, etc";
+		var previousUserData = await GetUserData();
+		var newUserData = new User
+		{
+			Email = user.Email,
+			MoneyBalance = previousUserData.MoneyBalance,
+			Password = user.Password,
 			SignUpTimeStamp = FieldValue.ServerTimestamp
 		};
 		await AccountTest.Instance.SignUpToFirestoreProcedure(newUserData);
