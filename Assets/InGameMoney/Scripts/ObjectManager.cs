@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,6 +12,14 @@ namespace InGameMoney
         [SerializeField] private ShopTest shop;
         [SerializeField] private GameObject inGameMoney;
         [SerializeField] private GameObject firstBoot;
+        [SerializeField] private Button signUpSignInWithEmailButton;
+        [SerializeField] private GameObject canvasInAppPurchase;
+        [SerializeField] private GameObject registerGuestAccount;
+        [SerializeField] private Button loginButton;
+        [SerializeField] private Button logoutButton;
+        [SerializeField] private Button signUpWithEmailButton;
+        [SerializeField] private Button signInOrTakeOver;
+        [SerializeField] private Button signUpWithGuestButton;
         
         public PurchaseTest Purchase => purchase;
         public Text Logs => logs;
@@ -20,12 +29,52 @@ namespace InGameMoney
         
         public ShopTest Shop => shop;
         public static ObjectManager Instance { get; private set; }
+        public Button SignUpSignInWithEmailButton => signUpSignInWithEmailButton;
 
         private void Awake()
         {
             if (Instance) Destroy(this);
             else Instance = this;
             DontDestroyOnLoad(this);
+        }
+
+        private void Start()
+        {
+            AddListenerToButtons();
+        }
+
+        private void AddListenerToButtons()
+        {
+            // SignUpSignInButton will act as SignUp button as default, unless SignIn is clicked
+            var signUpEmailButton = signUpSignInWithEmailButton;
+            signUpEmailButton.onClick.AddListener(OnButtonSignUpWithEmail);
+        }
+
+        private void OnButtonSignUpWithEmail()
+        {
+            inGameMoney.SetActive(true);
+            firstBoot.SetActive(false);
+            canvasInAppPurchase.SetActive(false);
+            registerGuestAccount.SetActive(false);
+            loginButton.interactable = false;
+            logoutButton.interactable = false;
+        }
+
+        public void OnButtonSignInWithEmail()
+        {
+            inGameMoney.SetActive(true);
+            firstBoot.SetActive(false);
+            canvasInAppPurchase.SetActive(false);
+            registerGuestAccount.SetActive(false);
+            signUpWithEmailButton.gameObject.SetActive(false);
+            loginButton.interactable = true;
+            logoutButton.interactable = false;
+        }
+
+        public void ResetFirstBootView()
+        {
+            signUpWithGuestButton.gameObject.SetActive(true);
+            signInOrTakeOver.gameObject.SetActive(true);
         }
     }
 }

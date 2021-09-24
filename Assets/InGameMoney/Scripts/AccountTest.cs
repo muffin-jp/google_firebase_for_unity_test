@@ -168,6 +168,7 @@ namespace InGameMoney
 		{
 			ObjectManager.Instance.InGameMoney.SetActive(false);
 			ObjectManager.Instance.FirstBoot.SetActive(true);
+			ObjectManager.Instance.ResetFirstBootView();
 		}
 
 		public void SetupUI(string emailAddress, string password, bool autoLogin)
