@@ -6,6 +6,19 @@ using UnityEngine;
 using UnityEngine.Assertions;
 #pragma warning disable 4014
 
+public class PersonalData {
+	public int purchasedMoney;
+	public bool unlockedA;
+	public bool unlockedB;
+	public bool unlockedC;
+	#region json_template
+	static string path => JsonTool.CombineStreamingAssetsPath("personal.json");
+	static bool isExists => System.IO.File.Exists(path);
+	public static PersonalData Read() { return isExists ? JsonTool.Read<PersonalData>(path) : new PersonalData(); }
+	public void Write() { JsonTool.Write(path, this); }
+	#endregion
+}
+
 namespace InGameMoney {
 	public class UserData
 {
@@ -30,20 +43,17 @@ namespace InGameMoney {
 	Data accountData;
 	public Data AccountData => accountData;
 	
-	public class PersonalData {
-		public int purchasedMoney;
-		public bool unlockedA;
-		public bool unlockedB;
-		public bool unlockedC;
-#region json_template
-		static string path => JsonTool.CombineStreamingAssetsPath("personal.json");
-		static bool isExists => System.IO.File.Exists(path);
-		public static PersonalData Read() { return isExists ? JsonTool.Read<PersonalData>(path) : new PersonalData(); }
-		public void Write() { JsonTool.Write(path, this); }
-#endregion
+	
+
+	private PersonalData personalData;
+	public PersonalData PersonalData
+	{
+		get => personalData;
+		set => personalData = value;
 	}
-	PersonalData personalData;
+
 	private long moneyBalance;
+	
 	public int purchasedMoney => personalData.purchasedMoney;
 	public bool unlockedA => personalData.unlockedA;
 	public bool unlockedB => personalData.unlockedB;
@@ -77,7 +87,7 @@ namespace InGameMoney {
 		var mailAddress = AccountTest.Instance.InputFieldMailAddress.text;
 		var password = AccountTest.Instance.InputFieldPassword.text;
 		var autoLogin = AccountTest.Instance.AutoLogin;
-		writeUserData.WriteData(mailAddress, password, autoLogin);
+		writeUserData.WriteAccountData(mailAddress, password, autoLogin);
 	}
 
 	private async void UpdatePurchaseAndShop()
@@ -90,10 +100,11 @@ namespace InGameMoney {
 		ObjectManager.Instance.Shop.UpdateText();
 	}
 
-	void OnLogout()
+	private void OnLogout()
 	{
-		personalData?.Write();
+		ResetPersonalData();
 		personalData = null;
+		// TODO Reset AccountData
 	}
 
 	public void BuyMoney(int value)
@@ -134,6 +145,16 @@ namespace InGameMoney {
 		personalData.purchasedMoney += value;
 		personalData.Write();
 		UpdateUserMoneyBalance(personalData.purchasedMoney);
+	}
+
+	private void ResetPersonalData()
+	{
+		personalData.purchasedMoney = 0;
+		personalData.unlockedA = false;
+		personalData.unlockedB = false;
+		personalData.unlockedC = false;
+		personalData.Write();
+		ObjectManager.Instance.MoneyBalanceText.text = $"{ObjectManager.PurchasedMoneyPrefix}{personalData.purchasedMoney}";
 	}
 
 	private void UpdateUserMoneyBalance(int moneyBalance)

@@ -9,6 +9,7 @@ namespace InGameMoney
         [SerializeField] private PurchaseTest purchase;
         [SerializeField] private Text logs;
         [SerializeField] private Text firstBootLogs;
+        [SerializeField] private Text moneyBalanceText;
         [SerializeField] private ShopTest shop;
         [SerializeField] private GameObject inGameMoney;
         [SerializeField] private GameObject firstBoot;
@@ -30,6 +31,9 @@ namespace InGameMoney
         public ShopTest Shop => shop;
         public static ObjectManager Instance { get; private set; }
         public Button SignUpSignInWithEmailButton => signUpSignInWithEmailButton;
+        public Text MoneyBalanceText => moneyBalanceText;
+        
+        public const string PurchasedMoneyPrefix = "Purchased Money :";
 
         private void Awake()
         {

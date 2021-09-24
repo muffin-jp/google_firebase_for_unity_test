@@ -2,6 +2,7 @@ namespace InGameMoney
 {
     public interface IWriteUserData
     {
-        void WriteData(string mailAddress, string password, bool autoLogin);
+        void WriteAccountData(string mailAddress, string password, bool autoLogin);
+        void WritePersonalData();
     }
 }

@@ -531,6 +531,7 @@ MonoBehaviour:
   purchase: {fileID: 439351166}
   logs: {fileID: 1066262659}
   firstBootLogs: {fileID: 4474022089770136500}
+  moneyBalanceText: {fileID: 874451571}
   shop: {fileID: 1413779333}
   inGameMoney: {fileID: 4720453983297453008}
   firstBoot: {fileID: 1934890163453336612}
@@ -1595,7 +1596,7 @@ GameObject:
   - component: {fileID: 874451572}
   - component: {fileID: 874451571}
   m_Layer: 5
-  m_Name: Text
+  m_Name: MoneyBalanceText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

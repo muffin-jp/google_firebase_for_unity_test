@@ -193,7 +193,7 @@ namespace InGameMoney
 
 		private void OnApplicationQuit()
 		{
-			OnLogout?.Invoke();
+			UserDataAccess.WritePersonalData();
 			if (!PlayerPrefs.HasKey(FirebaseSignedWithAppleKey))
 			{
 				WriteUserData();
@@ -203,10 +203,10 @@ namespace InGameMoney
 		public void WriteUserData(User data = null)
 		{
 			if (data == null)
-				UserDataAccess?.WriteData(inputfMailAdress.text, inputfPassword.text, autoLogin.isOn);
+				UserDataAccess?.WriteAccountData(inputfMailAdress.text, inputfPassword.text, autoLogin.isOn);
 			else
 			{
-				UserDataAccess?.WriteData(data.Email, data.Password, autoLogin.isOn);
+				UserDataAccess?.WriteAccountData(data.Email, data.Password, autoLogin.isOn);
 			}
 		}
 
