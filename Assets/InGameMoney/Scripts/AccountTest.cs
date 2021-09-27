@@ -213,12 +213,13 @@ namespace InGameMoney
 		public async Task SignUpToFirestoreProcedure(User data)
 		{
 			await SignUpToFirestoreAsync(data);
-			WriteUserData();
+			WriteUserData(data);
 			Login();
 		}
 
 		public async Task SignUpToFirestoreAsync(User data)
 		{
+			Debug.Log($">>>> SignUpToFirestoreAsync Email {data.Email}");
 			var docRef = db.Collection("Users").Document(data.Email);
 			var task = docRef.SetAsync(data).ContinueWithOnMainThread(signUpTask => signUpTask);
 			
@@ -238,9 +239,8 @@ namespace InGameMoney
 			if (task.Result.IsCompleted)
 			{
 				Debug.Log(
-					$">>>> SignUpToFirestore, New Data Added, Now You can read and update data using Email : {data.Email}");
+					$">>>> SignUpToFirestore IsCompleted, New Data Added, Now You can read and update data using Email : {data.Email}");
 			}
-			Debug.Log($">>>> SignUpToFirestoreAsync task.Result.IsCompleted {task.Result.IsCompleted}");
 		}
 
 		public User GetDefaultUserDataFromInputField()

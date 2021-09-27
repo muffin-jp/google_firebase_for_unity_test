@@ -147,6 +147,7 @@ namespace InGameMoney {
 
 	private void ResetPersonalData()
 	{
+		if (personalData == null) return;
 		personalData.purchasedMoney = 0;
 		personalData.unlockedA = false;
 		personalData.unlockedB = false;
@@ -203,7 +204,7 @@ namespace InGameMoney {
 
 	public async Task UpdateFirestoreUserData(User user)
 	{
-		ObjectManager.Instance.Logs.text = $"Updating User data, such as email and password, etc";
+		Debug.Log($">>>> Updating User data, such as email and password, etc");
 		var previousUserData = await GetUserData();
 		var newUserData = new User
 		{

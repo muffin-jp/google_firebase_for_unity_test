@@ -9,7 +9,7 @@ namespace InGameMoney
             var signInWithEmailButton = ObjectManager.Instance.SignUpSignInWithEmailButton;
             signInWithEmailButton.onClick.AddListener(() => ObjectManager.Instance.OnButtonSignInWithEmail());
 
-            ObjectManager.Instance.FirestoreAsyncAction = UserData.Instance.UpdateFirestoreUserData;
+            ObjectManager.Instance.FirestoreRegistrationAsync = UserData.Instance.UpdateFirestoreUserData;
         }
     }
 }

@@ -22,6 +22,7 @@ namespace InGameMoney
         [SerializeField] private Button signUpWithEmailButton;
         [SerializeField] private Button signInOrTakeOver;
         [SerializeField] private Button signUpWithGuestButton;
+        private Func<User, Task> firestoreRegistrationAsync;
         
         public PurchaseTest Purchase => purchase;
         public Text Logs => logs;
@@ -35,12 +36,11 @@ namespace InGameMoney
         public Text MoneyBalanceText => moneyBalanceText;
         
         public const string PurchasedMoneyPrefix = "Purchased Money :";
-        private Action<User> firestoreAction;
-        private Func<User, Task> firestoreAsyncAction;
-        public Func<User, Task> FirestoreAsyncAction
+        
+        public Func<User, Task> FirestoreRegistrationAsync
         {
-            get => firestoreAsyncAction;
-            set => firestoreAsyncAction = value;
+            get => firestoreRegistrationAsync;
+            set => firestoreRegistrationAsync = value;
         }
 
         private void Awake()
@@ -58,8 +58,7 @@ namespace InGameMoney
 
         private void AddActions()
         {
-            firestoreAsyncAction = firestoreAction.ToAsync();
-            firestoreAsyncAction = AccountTest.Instance.SignUpToFirestoreAsync;
+            firestoreRegistrationAsync = AccountTest.Instance.SignUpToFirestoreAsync;
         }
 
         private void AddListenerToButtons()

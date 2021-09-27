@@ -193,8 +193,7 @@ namespace InGameMoney
             {
                 var newUser = signInTask.Result.Result;
                 PlayerPrefs.SetString(AccountTest.FirebaseSignedWithAppleKey, "Yes");
-                Debug.Log($">>>> Firebase SignInWithCredentialAsync apple succeed signedIn {AccountTest.Instance.SignedIn} " + $"DisplayName {newUser.DisplayName} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(AccountTest.FirebaseSignedWithAppleKey)}");
-				
+
                 var data = new User
                 {
                     Email = newUser.Email,
@@ -203,7 +202,9 @@ namespace InGameMoney
                     SignUpTimeStamp = FieldValue.ServerTimestamp
                 };
 
-                await ObjectManager.Instance.FirestoreAsyncAction(data);
+                Debug.Log($">>>> Firebase SignInWithCredentialAsync apple succeed Email {data.Email} signedIn {AccountTest.Instance.SignedIn} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(AccountTest.FirebaseSignedWithAppleKey)}");
+                
+                await ObjectManager.Instance.FirestoreRegistrationAsync(data);
                 AccountTest.Instance.WriteUserData(data);
                 LoginByAppleId();
             }

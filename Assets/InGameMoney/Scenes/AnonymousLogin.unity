@@ -5937,7 +5937,7 @@ GameObject:
   - component: {fileID: 7422497971035812226}
   - component: {fileID: 7422497971035812227}
   m_Layer: 5
-  m_Name: SignInWithAppleText
+  m_Name: SignUpWithAppleText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6109,7 +6109,7 @@ GameObject:
   - component: {fileID: 7422497972503656748}
   - component: {fileID: 7422497972503656749}
   m_Layer: 5
-  m_Name: SignInWithAppleButton
+  m_Name: SignUpWithAppleButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6146,7 +6146,7 @@ GameObject:
   - component: {fileID: 7422497972540029114}
   - component: {fileID: 7422497972540029115}
   m_Layer: 5
-  m_Name: SignInWithAppleIcon
+  m_Name: SignUpWithAppleIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
