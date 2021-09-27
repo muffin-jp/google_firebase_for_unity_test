@@ -22,6 +22,9 @@ namespace InGameMoney
         [SerializeField] private Button signUpWithEmailButton;
         [SerializeField] private Button signInOrTakeOver;
         [SerializeField] private Button signUpWithGuestButton;
+        [SerializeField] private InputField mailInputField;
+        [SerializeField] private InputField passwordInputField;
+        
         private Func<User, Task> firestoreRegistrationAsync;
         
         public PurchaseTest Purchase => purchase;
@@ -87,6 +90,8 @@ namespace InGameMoney
             signUpWithEmailButton.gameObject.SetActive(false);
             loginButton.interactable = true;
             logoutButton.interactable = false;
+            mailInputField.interactable = true;
+            passwordInputField.interactable = true;
         }
 
         public void ResetFirstBootView()

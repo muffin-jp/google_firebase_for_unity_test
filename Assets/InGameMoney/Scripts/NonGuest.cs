@@ -23,11 +23,12 @@ namespace InGameMoney
                 AccountTest.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
             }
-            Debug.Log($">>>> NonGuest Email {auth.CurrentUser.Email}");
+            Debug.Log($">>>> NonGuest Email {auth.CurrentUser.Email} HasKey Apple {PlayerPrefs.HasKey(AccountTest.AppleUserIdKey)}");
             // Need to delete apple user id key before using email to sign in
             Assert.IsFalse(PlayerPrefs.HasKey(AccountTest.AppleUserIdKey));
-            AccountTest.Instance.Login();
-            AccountTest.Instance.UpdatePurchaseAndShop();
+            
+            // Check if auto login is on for non-guest/email authentication
+            AccountTest.Instance.AutoLoginValidation(userData);
         }
     }
 }

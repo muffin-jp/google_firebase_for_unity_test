@@ -177,11 +177,6 @@ namespace InGameMoney
 			inputfPassword.text = password;
 			this.autoLogin.isOn = autoLogin;
 			canvasIap.SetActive(false);
-
-			if (signedIn)
-			{
-				OpenGameView();
-			}
 		}
 		
 		public void OpenGameView()
@@ -412,14 +407,16 @@ namespace InGameMoney
 			appleAuth.PerformLoginWithAppleIdAndFirebase();
 		}
 
-		public void SetupLogin(UserData userData)
+		public void AutoLoginValidation(UserData userData)
 		{
 			SetupUI(userData.AccountData.mailAddress, userData.AccountData.password, userData.AccountData.autoLogin);
+			if (signedIn) OpenGameView();
 			registerGuestAccount.interactable = false;
 			if (AutoLogin.isOn)
 			{
 				ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
 				Login();
+				UpdatePurchaseAndShop();
 			}
 		}
 		

@@ -543,6 +543,8 @@ MonoBehaviour:
   signUpWithEmailButton: {fileID: 1293138212}
   signInOrTakeOver: {fileID: 123310877}
   signUpWithGuestButton: {fileID: 3466035551807965824}
+  mailInputField: {fileID: 384818230}
+  passwordInputField: {fileID: 1505154844}
 --- !u!1 &246009924
 GameObject:
   m_ObjectHideFlags: 0
