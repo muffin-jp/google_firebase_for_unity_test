@@ -213,7 +213,8 @@ namespace InGameMoney
 		public async Task SignUpToFirestoreProcedure(User data)
 		{
 			await SignUpToFirestoreAsync(data);
-			WriteUserData(data);
+			// Debug.Log($">>>> WriteUserData Email {data.Email}");
+			// WriteUserData(data);
 			Login();
 		}
 
@@ -320,7 +321,18 @@ namespace InGameMoney
 			ObjectManager.Instance.Logs.text = $"Account Logged In, your user ID: {login.Result.UserId}";
 			WriteUserData();
 			Login();
-			UserData.Instance.UpdateLocalData();
+			var userData = new User
+			{
+				Email = inputfMailAdress.text,
+				Password = inputfPassword.text
+			};
+			UserData.Instance.UpdateLocalData(userData);
+		}
+
+		public void UpdatePurchaseAndShop()
+		{
+			var dataAccess = UserDataAccess as UserDataAccess;
+			dataAccess?.UpdatePurchaseAndShop();
 		}
 
 		public void Login()
@@ -412,6 +424,18 @@ namespace InGameMoney
 				taskFault = new Login();
 
 			return taskFault.Validate(task);
+		}
+
+		public static void ResetPersonalData()
+		{
+			var userData = UserDataAccess as UserDataAccess;
+			userData?.ResetPersonalData();
+		}
+
+		public static void InitPersonalData()
+		{
+			var userData = UserDataAccess as UserDataAccess;
+			userData?.InitPersonalData();
 		}
 	}
 }

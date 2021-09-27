@@ -1,4 +1,5 @@
 using Firebase.Auth;
+using UnityEngine;
 
 namespace InGameMoney
 {
@@ -20,9 +21,10 @@ namespace InGameMoney
                 AccountTest.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
             }
-				
+            Debug.Log($">>>> Guest {auth.CurrentUser.UserId}");
             AccountTest.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
             AccountTest.Instance.Login();
+            AccountTest.Instance.UpdatePurchaseAndShop();
         }
     }
 }

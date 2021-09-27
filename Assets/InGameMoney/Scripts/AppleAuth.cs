@@ -33,7 +33,7 @@ namespace InGameMoney
                 AccountTest.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
             }
-
+            Debug.Log($">>>> AppleAuth Email {auth.CurrentUser.Email}");
             InitializeLoginMenu();
         }
 

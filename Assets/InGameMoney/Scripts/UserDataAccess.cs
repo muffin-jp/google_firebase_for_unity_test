@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace InGameMoney
 {
     public class UserDataAccess : IWriteUserData
@@ -11,7 +13,11 @@ namespace InGameMoney
 
         public void WriteAccountData(string mailAddress, string password, bool autoLogin)
         {
-            if (userData?.AccountData == null) return;
+            if (userData?.AccountData == null)
+            {
+                Debug.Log($">>>> Can not WriteAccountData because null");
+                return;
+            }
             userData.AccountData.mailAddress = mailAddress;
             userData.AccountData.password = password;
             userData.AccountData.autoLogin = autoLogin;
@@ -22,6 +28,21 @@ namespace InGameMoney
         {
             userData.PersonalData?.Write();
             userData.PersonalData = null;
+        }
+
+        public void ResetPersonalData()
+        {
+            userData.ResetPersonalData();
+        }
+
+        public void InitPersonalData()
+        {
+            userData.InitPersonalData();
+        }
+
+        public void UpdatePurchaseAndShop()
+        {
+            userData.UpdatePurchaseAndShop();
         }
     }
 }

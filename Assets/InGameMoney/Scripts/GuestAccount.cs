@@ -19,6 +19,8 @@ namespace InGameMoney
 
         public void OnGuestLoginButton()
         {
+            AccountTest.InitPersonalData();
+            AccountTest.ResetPersonalData();
             SignUpUsingAnonymous();
         }
 

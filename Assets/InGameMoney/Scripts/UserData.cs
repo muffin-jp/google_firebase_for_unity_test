@@ -69,26 +69,31 @@ namespace InGameMoney {
 	private void OnLogin()
 	{
 		if ( null != personalData ) return;
+		InitPersonalData();
+	}
+
+	public void InitPersonalData()
+	{
 		personalData = PersonalData.Read();
 	}
 
-	public void UpdateLocalData()
+	public void UpdateLocalData(User data)
 	{
-		UpdateLocalUserData();
+		UpdateLocalUserData(data);
 		UpdatePurchaseAndShop();
 	}
 
-	private static void UpdateLocalUserData()
+	private static void UpdateLocalUserData(User data)
 	{
 		Debug.Log($">>>> UpdateLocalUserData HasKey FirebaseSignedWithAppleKey {PlayerPrefs.HasKey(AccountTest.FirebaseSignedWithAppleKey)}");
-		IWriteUserData writeUserData = AccountTest.UserDataAccess;
-		var mailAddress = AccountTest.Instance.InputFieldMailAddress.text;
-		var password = AccountTest.Instance.InputFieldPassword.text;
+		var writeUserData = AccountTest.UserDataAccess;
+		var mailAddress = data.Email;
+		var password = data.Password;
 		var autoLogin = AccountTest.Instance.AutoLogin;
 		writeUserData.WriteAccountData(mailAddress, password, autoLogin);
 	}
 
-	private async void UpdatePurchaseAndShop()
+	public async void UpdatePurchaseAndShop()
 	{
 		await ReadUserData();
 
@@ -145,7 +150,7 @@ namespace InGameMoney {
 		UpdateUserMoneyBalance(personalData.purchasedMoney);
 	}
 
-	private void ResetPersonalData()
+	public void ResetPersonalData()
 	{
 		if (personalData == null) return;
 		personalData.purchasedMoney = 0;
@@ -214,7 +219,7 @@ namespace InGameMoney {
 			SignUpTimeStamp = FieldValue.ServerTimestamp
 		};
 		await AccountTest.Instance.SignUpToFirestoreProcedure(newUserData);
-		UpdateLocalData();
+		UpdateLocalData(newUserData);
 	}
 
 	public enum Item {
