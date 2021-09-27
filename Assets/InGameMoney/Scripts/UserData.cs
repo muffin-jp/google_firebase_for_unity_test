@@ -281,6 +281,12 @@ namespace InGameMoney {
 	private async Task<User> GetUserData()
 	{
 		Debug.Log($">>>> GetUserData _data == null {accountData == null} mailAddress {accountData.mailAddress}");
+		if (accountData != null && accountData.mailAddress == null)
+		{
+			// No previous data, possibly using new device
+			return default;
+		}
+		
 		var usersRef = AccountTest.Db.Collection("Users").Document(accountData.mailAddress);
 		var task = usersRef.GetSnapshotAsync().ContinueWithOnMainThread(readTask => readTask);
 

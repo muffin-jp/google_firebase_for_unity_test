@@ -250,6 +250,7 @@ namespace InGameMoney
         private static void LoginByAppleId()
         {
             AccountTest.Instance.Login();
+            AccountTest.Instance.UpdatePurchaseAndShop();
             AccountTest.Instance.OpenGameView();
             AccountTest.Instance.RegisterGuestAccount.interactable = false;
         }
