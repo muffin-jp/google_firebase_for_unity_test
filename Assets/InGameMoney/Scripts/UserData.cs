@@ -79,11 +79,11 @@ namespace InGameMoney {
 
 	public void UpdateLocalData(User data)
 	{
-		UpdateLocalUserData(data);
+		UpdateLocalAccountData(data);
 		UpdatePurchaseAndShop();
 	}
 
-	private static void UpdateLocalUserData(User data)
+	private static void UpdateLocalAccountData(User data)
 	{
 		Debug.Log($">>>> UpdateLocalUserData HasKey FirebaseSignedWithAppleKey {PlayerPrefs.HasKey(AccountTest.FirebaseSignedWithAppleKey)}");
 		var writeUserData = AccountTest.UserDataAccess;
@@ -95,6 +95,7 @@ namespace InGameMoney {
 
 	public async void UpdatePurchaseAndShop()
 	{
+		Debug.Log($">>>> UpdatePurchaseAndShop");
 		await ReadUserData();
 
 		personalData.purchasedMoney = (int) moneyBalance;
@@ -207,15 +208,15 @@ namespace InGameMoney {
 		Debug.Log($">>>> Finish UpdateWithPreviousData");
 	}
 
-	public async Task UpdateFirestoreUserData(User user)
+	public async Task UpdateFirestoreUserData(User newUser)
 	{
 		Debug.Log($">>>> Updating User data, such as email and password, etc");
-		var previousUserData = await GetUserData();
+		var previousUserData = await GetUserData(newUser);
 		var newUserData = new User
 		{
-			Email = user.Email,
+			Email = newUser.Email,
 			MoneyBalance = previousUserData.MoneyBalance,
-			Password = user.Password,
+			Password = newUser.Password,
 			SignUpTimeStamp = FieldValue.ServerTimestamp
 		};
 		await AccountTest.Instance.SignUpToFirestoreProcedure(newUserData);
@@ -273,21 +274,25 @@ namespace InGameMoney {
 	// Sync user data from firestore to prevent cheat
 	private async Task ReadUserData()
 	{
+		Debug.Log($">>>> ReadUserData");
 		var userData = await GetUserData();
 		Assert.IsNotNull(userData, "User data should not null");
 		moneyBalance = userData.MoneyBalance;
 	}
 
-	private async Task<User> GetUserData()
+	private async Task<User> GetUserData(User newUser = null)
 	{
-		Debug.Log($">>>> GetUserData _data == null {accountData == null} mailAddress {accountData.mailAddress}");
-		if (accountData != null && accountData.mailAddress == null)
+		Debug.Log($">>>> GetUserData _data == null {accountData == null} mailAddress {accountData?.mailAddress}");
+		var email = accountData?.mailAddress ?? newUser?.Email;
+		
+		if (email == null)
 		{
-			// No previous data, possibly using new device
+			// No previous data, possibly using new device, so we need to provide new email
+			Debug.Log($">>>> GetUserData No previous email so return new email or default");
 			return default;
 		}
 		
-		var usersRef = AccountTest.Db.Collection("Users").Document(accountData.mailAddress);
+		var usersRef = AccountTest.Db.Collection("Users").Document(email);
 		var task = usersRef.GetSnapshotAsync().ContinueWithOnMainThread(readTask => readTask);
 
 		await task;

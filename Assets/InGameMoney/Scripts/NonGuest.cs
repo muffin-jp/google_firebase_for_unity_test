@@ -26,7 +26,8 @@ namespace InGameMoney
             Debug.Log($">>>> NonGuest Email {auth.CurrentUser.Email}");
             // Need to delete apple user id key before using email to sign in
             Assert.IsFalse(PlayerPrefs.HasKey(AccountTest.AppleUserIdKey));
-            AccountTest.Instance.SetupLogin(userData);
+            AccountTest.Instance.Login();
+            AccountTest.Instance.UpdatePurchaseAndShop();
         }
     }
 }

@@ -326,7 +326,13 @@ namespace InGameMoney
 				Email = inputfMailAdress.text,
 				Password = inputfPassword.text
 			};
-			UserData.Instance.UpdateLocalData(userData);
+			UpdateLocalData(userData);
+		}
+
+		private void UpdateLocalData(User userData)
+		{
+			var dataAccess = UserDataAccess as UserDataAccess;
+			dataAccess?.UpdateLocalData(userData);
 		}
 
 		public void UpdatePurchaseAndShop()
@@ -387,7 +393,8 @@ namespace InGameMoney
 
 		public static void LinkAccountToFirestore(string email, string password)
 		{
-			UserData.Instance.UpdateFirestoreUserDataAfterCredentialLinked(email, password);
+			var dataAccess = UserDataAccess as UserDataAccess;
+			dataAccess?.UpdateFirestoreUserDataAfterCredentialLinked(email, password);
 		}
 		
 		public void SetAuthButtonInteraction()
