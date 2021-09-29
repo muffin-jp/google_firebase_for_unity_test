@@ -90,6 +90,7 @@ namespace InGameMoney
             signUpWithEmailButton.gameObject.SetActive(false);
             loginButton.interactable = true;
             logoutButton.interactable = false;
+            ResetInputField();
             mailInputField.interactable = true;
             passwordInputField.interactable = true;
         }
@@ -98,6 +99,12 @@ namespace InGameMoney
         {
             signUpWithGuestButton.gameObject.SetActive(true);
             signInOrTakeOver.gameObject.SetActive(true);
+        }
+
+        public void ResetInputField()
+        {
+            mailInputField.text = "";
+            passwordInputField.text = "";
         }
     }
 }

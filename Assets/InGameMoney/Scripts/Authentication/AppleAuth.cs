@@ -251,6 +251,7 @@ namespace InGameMoney
             Print.GreenLog($">>>> OpenGameView from LoginByAppleId");
             AccountTest.Instance.Login();
             AccountTest.Instance.UpdatePurchaseAndShop();
+            ObjectManager.Instance.ResetInputField();
             AccountTest.Instance.OpenGameView();
             AccountTest.Instance.RegisterGuestAccount.interactable = false;
         }
