@@ -36,6 +36,7 @@ namespace InGameMoney
         public ShopTest Shop => shop;
         public static ObjectManager Instance { get; private set; }
         public Button SignUpSignInWithEmailButton => signUpSignInWithEmailButton;
+        public GameObject RegisterGuestAccount => registerGuestAccount;
         public Text MoneyBalanceText => moneyBalanceText;
         
         public const string PurchasedMoneyPrefix = "Purchased Money :";
@@ -54,6 +55,11 @@ namespace InGameMoney
         }
 
         private void Start()
+        {
+            AddDefaultActions();
+        }
+
+        public void AddDefaultActions()
         {
             AddListenerToButtons();
             AddActions();

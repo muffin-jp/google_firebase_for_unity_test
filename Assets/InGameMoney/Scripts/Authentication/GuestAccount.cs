@@ -22,6 +22,7 @@ namespace InGameMoney
             AccountTest.InitPersonalData();
             AccountTest.ResetPersonalData();
             SignUpUsingAnonymous();
+            ObjectManager.Instance.RegisterGuestAccount.SetActive(true);
         }
 
         private async void SignUpUsingAnonymous()

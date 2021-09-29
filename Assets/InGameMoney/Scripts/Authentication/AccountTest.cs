@@ -385,6 +385,7 @@ namespace InGameMoney
 			signInButton.interactable = true;
 			registerGuestAccount.interactable = true;
 			OnLogout?.Invoke();
+			ObjectManager.Instance.AddDefaultActions();
 		}
 		
 		private void LinkAuthWithEmailCredential()
