@@ -55,7 +55,11 @@ namespace InGameMoney
             ObjectManager.Instance.FirstBoot.SetActive(false);
             ObjectManager.Instance.InGameMoney.SetActive(true);
             AccountTest.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
-            if (AccountTest.Instance.SignedIn) AccountTest.Instance.OpenGameView();
+            if (AccountTest.Instance.SignedIn)
+            {
+                Print.GreenLog($">>>> OpenGameView from OnGuestLoginButton {auth.CurrentUser.Email}");
+                AccountTest.Instance.OpenGameView();
+            }
         }
     }
 }

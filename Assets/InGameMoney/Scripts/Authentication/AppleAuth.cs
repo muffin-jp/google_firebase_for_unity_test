@@ -17,12 +17,11 @@ namespace InGameMoney
         private readonly FirebaseAuth auth;
         private readonly UserData userData;
         private readonly IAppleAuthManager appleAuthManager;
-        public IAppleAuthManager AppleAuthManager => appleAuthManager;
 
         public AppleAuth(IAppleAuthManager appleAuthManager)
         {
             auth = FirebaseAuth.DefaultInstance;
-            userData = AccountTest.Userdata;
+            userData = ((UserDataAccess)AccountTest.UserDataAccess).UserData;
             this.appleAuthManager = appleAuthManager;
             ObjectManager.Instance.FirstBootLogs.text = $"New AppleAuth";
         }
@@ -226,7 +225,7 @@ namespace InGameMoney
                     }
 
                     var newUser = task.Result;
-                    Print.GreenLog($"Credentials successfully linked to Firebase userId {newUser.UserId}");
+                    Print.GreenLog($">>>> OpenGameView from Apple Credentials successfully linked to Firebase userId {newUser.UserId}");
                     AccountTest.LinkAccountToFirestore(newUser.Email, $"vw-apple-pass@{newUser.UserId}");
                     AccountTest.Instance.SetAuthButtonInteraction();
                     AccountTest.Instance.OpenGameView();
@@ -249,6 +248,7 @@ namespace InGameMoney
         
         private static void LoginByAppleId()
         {
+            Print.GreenLog($">>>> OpenGameView from LoginByAppleId");
             AccountTest.Instance.Login();
             AccountTest.Instance.UpdatePurchaseAndShop();
             AccountTest.Instance.OpenGameView();

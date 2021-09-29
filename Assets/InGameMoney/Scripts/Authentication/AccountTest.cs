@@ -34,13 +34,13 @@ namespace InGameMoney
 		[SerializeField] private Button registerGuestAccount;
 
 		private static FirebaseFirestore db;
-		private static UserData userdata;
 		private FirebaseAuth auth;
 		private FirebaseUser user;
 		private bool signedIn;
 		private static ITaskFault taskFault;
 		private IAppleAuthManager appleAuthManager;
 		private bool linkGuestAccount;
+		private const string InstallationKey = "IsInstalled";
 		
 		public const string FirebaseSignedWithAppleKey = "FirebaseSignedWithApple";
 		public static UnityAction OnLogin = null;
@@ -55,7 +55,6 @@ namespace InGameMoney
 		public Button SignOutButton => signOutButton;
 		public Button SignUpButton => signUpButton;
 		public Button RegisterGuestAccount => registerGuestAccount;
-		public static UserData Userdata => userdata;
 		public bool SignedIn => signedIn;
 
 		public const string AppleUserIdKey = "AppleUserId";
@@ -95,17 +94,24 @@ namespace InGameMoney
 			}
 		}
 		
-		private void Start()
+		private async void Start()
 		{
 			db = FirebaseFirestore.DefaultInstance;
-			userdata = UserData.Instance;
-			UserDataAccess = new UserDataAccess(userdata);
 			inputfPassword.inputType = InputField.InputType.Password;
 			inputfPassword.asteriskChar = "$!£%&*"[5];
-			userdata.Init();
+			UserDataAccess = new UserDataAccess();
 
 			AppleAuthValidation();
-			InitializeAuthentication();
+			
+			if (signedIn)
+			{
+				var validUser = await ReloadAndCheckErrorPreviousUser();
+				Print.GreenLog($">>>> validUser {validUser} HasKey IsFirebaseAuthInitialized {PlayerPrefs.HasKey(InstallationKey)}");
+				if (validUser && PlayerPrefs.HasKey(InstallationKey))
+					InitializeAuthentication();
+				else
+					SignOut();
+			}
 		}
 
 		private void AppleAuthValidation()
@@ -125,24 +131,39 @@ namespace InGameMoney
 
 		private void InitializeAuthentication()
 		{
-			if (signedIn)
+			IAccountBase accountBase;
+			if (auth.CurrentUser.IsAnonymous)
 			{
-				IAccountBase accountBase;
-				if (auth.CurrentUser.IsAnonymous)
-				{
-					accountBase = new Guest();
-				}
-				else if (PlayerPrefs.HasKey(FirebaseSignedWithAppleKey))
-				{
-					accountBase = new AppleAuth(appleAuthManager);
-				}
-				else
-				{
-					accountBase = new NonGuest();
-				}
-				
-				accountBase.Validate();
+				accountBase = new Guest();
 			}
+			else if (PlayerPrefs.HasKey(FirebaseSignedWithAppleKey))
+			{
+				accountBase = new AppleAuth(appleAuthManager);
+			}
+			else
+			{
+				accountBase = new NonGuest();
+			}
+
+			accountBase.Validate();
+		}
+		
+		/// <summary>
+		/// After Reinstall check if user is valid
+		/// </summary>
+		/// <returns></returns>
+		private async Task<bool> ReloadAndCheckErrorPreviousUser()
+		{
+			var reloadAsync = auth.CurrentUser.ReloadAsync();
+			await reloadAsync;
+			if (reloadAsync.IsCanceled)
+				return false;
+			if (reloadAsync.IsFaulted)
+			{
+				Print.RedLog($">>>> ReloadAndCheckErrorPreviousUser Exception {reloadAsync.Exception}");
+				return false;
+			}
+			return reloadAsync.IsCompleted;
 		}
 
 		private void Update()
@@ -161,7 +182,7 @@ namespace InGameMoney
 		{
 			autoLogin.isOn = false;
 			auth?.SignOut();
-			ObjectManager.Instance.Logs.text = $"Sign Out: {auth?.CurrentUser}";
+			Print.GreenLog($"Sign Out: {auth?.CurrentUser}");
 			OpenSignUpOptionView();
 			PlayerPrefs.DeleteKey(FirebaseSignedWithAppleKey);
 		}
@@ -345,6 +366,8 @@ namespace InGameMoney
 			inputfMailAdress.interactable = false;
 			inputfPassword.interactable = false;
 			OnLogin?.Invoke();
+			if (!PlayerPrefs.HasKey(InstallationKey))
+				PlayerPrefs.SetString(InstallationKey, "Yes");
 		}
 
 		public void OnButtonLogoutFirebaseAuth()
@@ -385,6 +408,7 @@ namespace InGameMoney
 				ObjectManager.Instance.Logs.text = $"Credentials successfully linked to Firebase userId {newUser.UserId}";
 				LinkAccountToFirestore(inputfMailAdress.text, inputfPassword.text);
 				SetAuthButtonInteraction();
+				OpenGameView();
 			}, TaskScheduler.FromCurrentSynchronizationContext());
 		}
 
@@ -412,7 +436,11 @@ namespace InGameMoney
 		public void AutoLoginValidation(UserData userData)
 		{
 			SetupUI(userData.AccountData.mailAddress, userData.AccountData.password, userData.AccountData.autoLogin);
-			if (signedIn) OpenGameView();
+			if (signedIn)
+			{
+				Print.GreenLog($">>>> OpenGameView from AutoLoginValidation {userData.AccountData.mailAddress}");
+				OpenGameView();
+			}
 			registerGuestAccount.interactable = false;
 			if (AutoLogin.isOn)
 			{

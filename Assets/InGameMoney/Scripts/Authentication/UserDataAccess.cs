@@ -6,9 +6,17 @@ namespace InGameMoney
     {
         private readonly UserData userData;
 
-        public UserDataAccess(UserData userData)
+        public UserData UserData => userData;
+
+        public UserDataAccess()
         {
-            this.userData = userData;
+            userData = UserData.Instance;
+            Init();
+        }
+
+        private void Init()
+        {
+            userData.Init();
         }
 
         public void WriteAccountData(string mailAddress, string password, bool autoLogin)

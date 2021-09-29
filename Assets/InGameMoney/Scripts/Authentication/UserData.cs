@@ -108,7 +108,7 @@ namespace InGameMoney {
 	{
 		ResetPersonalData();
 		personalData = null;
-		// TODO Reset AccountData
+		ResetAccountData();
 	}
 
 	public void BuyMoney(int value)
@@ -160,6 +160,15 @@ namespace InGameMoney {
 		personalData.unlockedC = false;
 		personalData.Write();
 		ObjectManager.Instance.MoneyBalanceText.text = $"{ObjectManager.PurchasedMoneyPrefix}{personalData.purchasedMoney}";
+	}
+
+	public void ResetAccountData()
+	{
+		if (accountData == null) return;
+		accountData.mailAddress = null;
+		accountData.password = null;
+		accountData.autoLogin = false;
+		accountData.Write();
 	}
 
 	private void UpdateUserMoneyBalance(int moneyBalance)

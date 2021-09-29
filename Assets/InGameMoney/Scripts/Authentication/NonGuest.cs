@@ -12,7 +12,7 @@ namespace InGameMoney
         public NonGuest()
         {
             auth = FirebaseAuth.DefaultInstance;
-            userData = AccountTest.Userdata;
+            userData = ((UserDataAccess)AccountTest.UserDataAccess).UserData;
             ObjectManager.Instance.FirstBootLogs.text = $"New NonGuest AppName {auth.App.Name}";
         }
         
