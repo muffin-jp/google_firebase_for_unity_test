@@ -219,12 +219,12 @@ namespace InGameMoney {
 
 	public async Task UpdateFirestoreUserData(User newUser)
 	{
-		Print.GreenLog($">>>> Updating User data, such as email and password, etc");
+		Print.GreenLog($">>>> Updating User data, such as email and password, newUser email {newUser.Email}");
 		var previousUserData = await GetUserData(newUser);
 		var newUserData = new User
 		{
 			Email = newUser.Email,
-			MoneyBalance = previousUserData.MoneyBalance,
+			MoneyBalance = previousUserData?.MoneyBalance ?? 0,
 			Password = newUser.Password,
 			SignUpTimeStamp = FieldValue.ServerTimestamp
 		};
@@ -307,20 +307,20 @@ namespace InGameMoney {
 		await task;
 		
 		if (task.Result.IsCanceled) 
-			ObjectManager.Instance.Logs.text = "An Error Occurred !";
+			Print.GreenLog(">>>> An Error Occurred !");
 		
 		if (task.Result.IsFaulted) 
-			ObjectManager.Instance.Logs.text = "Add Data Failed Failed !";
+			Print.GreenLog(">>>> Add Data Failed Failed !");
 		
 		var snapshot = task.Result.Result;
 		if (snapshot.Exists)
 		{
-			ObjectManager.Instance.Logs.text = $"Document exist! for {snapshot.Id}";
+			Print.GreenLog($">>>> Document exist! for {snapshot.Id}");
 			var user = snapshot.ConvertTo<User>();
 			return user;
 		}
 
-		ObjectManager.Instance.Logs.text = $"Document does not exist! {snapshot.Id}";
+		Print.GreenLog($">>>> Document does not exist! {snapshot.Id}");
 		return default;
 	}
 
