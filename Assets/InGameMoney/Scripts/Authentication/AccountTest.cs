@@ -110,6 +110,8 @@ namespace InGameMoney
 
 		private void AppleAuthValidation()
 		{
+			Print.GreenLog($">>>> AppleAuthValidation IsCurrentPlatformSupported {AppleAuthManager.IsCurrentPlatformSupported}");
+			Assert.IsFalse(AppleAuthManager.IsCurrentPlatformSupported);
 			// If the current platform is supported
 			if (AppleAuthManager.IsCurrentPlatformSupported)
 			{
@@ -117,7 +119,7 @@ namespace InGameMoney
 				var deserializer = new PayloadDeserializer();
 				// Creates an Apple Authentication manager with the deserializer
 				appleAuthManager = new AppleAuthManager(deserializer);
-				ObjectManager.Instance.FirstBootLogs.text = "AppleAuthValidation is called";
+				Print.GreenLog($">>>> Creates an Apple Authentication manager");
 			}
 		}
 
@@ -208,14 +210,14 @@ namespace InGameMoney
 		public async Task SignUpToFirestoreProcedure(User data)
 		{
 			await SignUpToFirestoreAsync(data);
-			// Debug.Log($">>>> WriteUserData Email {data.Email}");
+			// Print.GreenLog($">>>> WriteUserData Email {data.Email}");
 			// WriteUserData(data);
 			Login();
 		}
 
 		public async Task SignUpToFirestoreAsync(User data)
 		{
-			Debug.Log($">>>> SignUpToFirestoreAsync Email {data.Email}");
+			Print.GreenLog($">>>> SignUpToFirestoreAsync Email {data.Email}");
 			var docRef = db.Collection("Users").Document(data.Email);
 			var task = docRef.SetAsync(data).ContinueWithOnMainThread(signUpTask => signUpTask);
 			
@@ -223,18 +225,18 @@ namespace InGameMoney
 			
 			if (task.Result.IsCanceled)
 			{
-				Debug.Log(">>>> Task IsCanceled !");
+				Print.GreenLog(">>>> Task IsCanceled !");
 			}
 			
 			if (task.Result.IsFaulted)
 			{
-				Debug.Log(
+				Print.GreenLog(
 					$">>>> SignUp task is faulted ! Exception: {task.Exception} Result exception {task.Result.Exception}");
 			}
 
 			if (task.Result.IsCompleted)
 			{
-				Debug.Log(
+				Print.GreenLog(
 					$">>>> SignUpToFirestore IsCompleted, New Data Added, Now You can read and update data using Email : {data.Email}");
 			}
 		}

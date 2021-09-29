@@ -21,7 +21,7 @@ namespace InGameMoney
                 AccountTest.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
             }
-            Debug.Log($">>>> Guest {auth.CurrentUser.UserId}");
+            Print.GreenLog($">>>> Guest {auth.CurrentUser.UserId}");
             AccountTest.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
             if (AccountTest.Instance.SignedIn) AccountTest.Instance.OpenGameView();
             AccountTest.Instance.Login();

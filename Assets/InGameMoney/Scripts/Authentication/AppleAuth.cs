@@ -33,23 +33,23 @@ namespace InGameMoney
                 AccountTest.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
             }
-            Debug.Log($">>>> AppleAuth Email {auth.CurrentUser.Email}");
+            Print.GreenLog($">>>> AppleAuth Email {auth.CurrentUser.Email}");
             InitializeLoginMenu();
         }
 
         private void InitializeLoginMenu()
         {
-            Debug.Log($">>>>> InitializeLoginMenu");
+            Print.GreenLog($">>>>> InitializeLoginMenu");
             if (appleAuthManager == null)
             {
-                Debug.Log($">>>>> Initialize appleAuthManager is null, Unsupported platform");
+                Print.GreenLog($">>>>> Initialize appleAuthManager is null, Unsupported platform");
                 return;
             }
             
             // If at any point we receive a credentials revoked notification, we delete the stored User ID, and go back to login
             appleAuthManager.SetCredentialsRevokedCallback(result =>
             {
-                Debug.Log($">>>>>Received revoked callback {result}");
+                Print.GreenLog($">>>>>Received revoked callback {result}");
                 AccountTest.Instance.SignOut();
                 PlayerPrefs.DeleteKey(AccountTest.AppleUserIdKey);
             });
@@ -57,14 +57,14 @@ namespace InGameMoney
             // If we have an Apple User Id available, get the credential status for it
             if (PlayerPrefs.HasKey(AccountTest.AppleUserIdKey))
             {
-                Debug.Log($">>>>> We have an Apple User Id available, get the credential status for it");
+                Print.GreenLog($">>>>> We have an Apple User Id available, get the credential status for it");
                 var storedAppleUserId = PlayerPrefs.GetString(AccountTest.AppleUserIdKey);
                 CheckCredentialStatusForUserId(storedAppleUserId);
             }
             // If we do not have an stored Apple User Id, attempt a quick login
             else
             {
-                Debug.Log($">>>>> we do not have an stored Apple User Id, attempt a quick login");
+                Print.GreenLog($">>>>> we do not have an stored Apple User Id, attempt a quick login");
                 PerformQuickLoginWithFirebase();
             }
         }
@@ -80,7 +80,7 @@ namespace InGameMoney
                     {
                         // If it's authorized, login with that user id
                         case CredentialState.Authorized:
-                            Debug.Log($">>>>> CheckCredentialStatusForUserId Authorized {appleUserId}");
+                            Print.GreenLog($">>>>> CheckCredentialStatusForUserId Authorized {appleUserId}");
                             LoginByAppleId();
                             return;
                         
@@ -88,7 +88,7 @@ namespace InGameMoney
                         // Discard previous apple user id
                         case CredentialState.Revoked:
                         case CredentialState.NotFound:
-                            Debug.Log($">>>>> CheckCredentialStatusForUserId CredentialState Revoked or NotFound  {appleUserId}");
+                            Print.GreenLog($">>>>> CheckCredentialStatusForUserId CredentialState Revoked or NotFound  {appleUserId}");
                             AccountTest.Instance.SignOut();
                             PlayerPrefs.DeleteKey(AccountTest.AppleUserIdKey);
                             return;
@@ -160,7 +160,7 @@ namespace InGameMoney
             string rawNonce, 
             bool fromQuickLogin = false)
         {
-            Debug.Log($">>>> PerformFirebaseAppleAuthentication fromQuickLogin {fromQuickLogin}");
+            Print.GreenLog($">>>> PerformFirebaseAppleAuthentication fromQuickLogin {fromQuickLogin}");
             ObjectManager.Instance.FirstBootLogs.text = $"PerformFirebaseAuthentication found token {appleIdCredential.IdentityToken}";
             var firebaseAppleCredential = GetFirebaseAppleCredential(appleIdCredential, rawNonce);
 
@@ -183,11 +183,11 @@ namespace InGameMoney
 			
             if (signInTask.Result.IsCanceled)
             {
-                Debug.Log(">>>> Firebase auth was canceled");
+                Print.GreenLog(">>>> Firebase auth was canceled");
             }
             else if (AccountTest.IsFaultedTask(signInTask.Result, true))
             {
-                Debug.Log($">>>> Firebase auth failed {signInTask.Result.Exception}");
+                Print.GreenLog($">>>> Firebase auth failed {signInTask.Result.Exception}");
             }
             else
             {
@@ -202,7 +202,7 @@ namespace InGameMoney
                     SignUpTimeStamp = FieldValue.ServerTimestamp
                 };
 
-                Debug.Log($">>>> Firebase SignInWithCredentialAsync apple succeed Email {data.Email} signedIn {AccountTest.Instance.SignedIn} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(AccountTest.FirebaseSignedWithAppleKey)}");
+                Print.GreenLog($">>>> Firebase SignInWithCredentialAsync apple succeed Email {data.Email} signedIn {AccountTest.Instance.SignedIn} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(AccountTest.FirebaseSignedWithAppleKey)}");
                 
                 await ObjectManager.Instance.FirestoreRegistrationAsync(data);
                 AccountTest.Instance.WriteUserData(data);
@@ -217,16 +217,16 @@ namespace InGameMoney
                 .ContinueWith(task =>
                 {
                     if (task.IsCanceled) {
-                        Debug.Log( $">>>> LinkWithCredentialAsync was canceled.");
+                        Print.GreenLog( $">>>> LinkWithCredentialAsync was canceled.");
                         return;
                     }
                     if (task.IsFaulted) {
-                        Debug.Log( $">>>> LinkWithCredentialAsync encountered an error: {task.Exception}");
+                        Print.GreenLog( $">>>> LinkWithCredentialAsync encountered an error: {task.Exception}");
                         return;
                     }
 
                     var newUser = task.Result;
-                    Debug.Log($"Credentials successfully linked to Firebase userId {newUser.UserId}");
+                    Print.GreenLog($"Credentials successfully linked to Firebase userId {newUser.UserId}");
                     AccountTest.LinkAccountToFirestore(newUser.Email, $"vw-apple-pass@{newUser.UserId}");
                     AccountTest.Instance.SetAuthButtonInteraction();
                     AccountTest.Instance.OpenGameView();
@@ -243,7 +243,7 @@ namespace InGameMoney
                 identityToken,
                 rawNonce,
                 authorizationCode);
-            Debug.Log($">>>>>>> GetFirebaseAppleCredential firebaseAppleCredential.IsValid() {firebaseAppleCredential.IsValid()}");
+            Print.GreenLog($">>>>>>> GetFirebaseAppleCredential firebaseAppleCredential.IsValid() {firebaseAppleCredential.IsValid()}");
             return firebaseAppleCredential;
         }
         

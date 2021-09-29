@@ -85,7 +85,7 @@ namespace InGameMoney {
 
 	private static void UpdateLocalAccountData(User data)
 	{
-		Debug.Log($">>>> UpdateLocalUserData HasKey FirebaseSignedWithAppleKey {PlayerPrefs.HasKey(AccountTest.FirebaseSignedWithAppleKey)}");
+		Print.GreenLog($">>>> UpdateLocalUserData HasKey FirebaseSignedWithAppleKey {PlayerPrefs.HasKey(AccountTest.FirebaseSignedWithAppleKey)}");
 		var writeUserData = AccountTest.UserDataAccess;
 		var mailAddress = data.Email;
 		var password = data.Password;
@@ -95,7 +95,7 @@ namespace InGameMoney {
 
 	public async void UpdatePurchaseAndShop()
 	{
-		Debug.Log($">>>> UpdatePurchaseAndShop");
+		Print.GreenLog($">>>> UpdatePurchaseAndShop");
 		await ReadUserData();
 
 		personalData.purchasedMoney = (int) moneyBalance;
@@ -205,12 +205,12 @@ namespace InGameMoney {
 	private async void UpdateWithPreviousData(User user)
 	{
 		await UpdateFirestoreUserData(user);
-		Debug.Log($">>>> Finish UpdateWithPreviousData");
+		Print.GreenLog($">>>> Finish UpdateWithPreviousData");
 	}
 
 	public async Task UpdateFirestoreUserData(User newUser)
 	{
-		Debug.Log($">>>> Updating User data, such as email and password, etc");
+		Print.GreenLog($">>>> Updating User data, such as email and password, etc");
 		var previousUserData = await GetUserData(newUser);
 		var newUserData = new User
 		{
@@ -274,21 +274,21 @@ namespace InGameMoney {
 	// Sync user data from firestore to prevent cheat
 	private async Task ReadUserData()
 	{
-		Debug.Log($">>>> ReadUserData");
+		Print.GreenLog($">>>> ReadUserData");
 		var userData = await GetUserData();
-		Assert.IsNotNull(userData, "User data should not null");
+		Assert.IsNotNull(userData, "User data should not null, Or possible local data is not null but the server is null");
 		moneyBalance = userData.MoneyBalance;
 	}
 
 	private async Task<User> GetUserData(User newUser = null)
 	{
-		Debug.Log($">>>> GetUserData _data == null {accountData == null} mailAddress {accountData?.mailAddress}");
+		Print.GreenLog($">>>> GetUserData _data == null {accountData == null} mailAddress {accountData?.mailAddress}");
 		var email = accountData?.mailAddress ?? newUser?.Email;
 		
 		if (email == null)
 		{
 			// No previous data, possibly using new device, so we need to provide new email
-			Debug.Log($">>>> GetUserData No previous email so return new email or default");
+			Print.GreenLog($">>>> GetUserData No previous email so return new email or default");
 			return default;
 		}
 		

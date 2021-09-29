@@ -15,7 +15,7 @@ namespace InGameMoney
         {
             if (userData?.AccountData == null)
             {
-                Debug.Log($">>>> Can not WriteAccountData because null");
+                Print.GreenLog($">>>> Can not WriteAccountData because null");
                 return;
             }
             userData.AccountData.mailAddress = mailAddress;
