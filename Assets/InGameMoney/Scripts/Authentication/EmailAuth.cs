@@ -4,12 +4,12 @@ using UnityEngine.Assertions;
 
 namespace InGameMoney
 {
-    public class NonGuest : IAccountBase
+    public class EmailAuth : IAccountBase
     {
         private readonly FirebaseAuth auth;
         private readonly UserData userData;
 
-        public NonGuest()
+        public EmailAuth()
         {
             auth = FirebaseAuth.DefaultInstance;
             userData = ((UserDataAccess)AccountTest.UserDataAccess).UserData;
@@ -27,8 +27,27 @@ namespace InGameMoney
             // Need to delete apple user id key before using email to sign in
             Assert.IsFalse(PlayerPrefs.HasKey(AccountTest.AppleUserIdKey));
             
-            // Check if auto login is on for non-guest/email authentication
-            AccountTest.Instance.AutoLoginValidation(userData);
+            // Check if auto login is on for email authentication
+            AutoLoginValidation(userData);
+        }
+
+        private void AutoLoginValidation(UserData currentUserData)
+        {
+            AccountTest.Instance.SetupUI(currentUserData.AccountData.mailAddress, currentUserData.AccountData.password, currentUserData.AccountData.autoLogin);
+            if (AccountTest.Instance.SignedIn)
+            {
+                Print.GreenLog($">>>> OpenGameView from AutoLoginValidation {currentUserData.AccountData.mailAddress}");
+                AccountTest.Instance.OpenGameView();
+            }
+            
+            AccountTest.Instance.RegisterGuestAccount.interactable = false;
+            
+            if (AccountTest.Instance.AutoLogin.isOn)
+            {
+                ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
+                AccountTest.Instance.Login();
+                AccountTest.Instance.UpdatePurchaseAndShop();
+            }
         }
     }
 }

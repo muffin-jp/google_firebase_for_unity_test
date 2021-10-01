@@ -142,7 +142,7 @@ namespace InGameMoney
 			}
 			else
 			{
-				accountBase = new NonGuest();
+				accountBase = new EmailAuth();
 			}
 
 			accountBase.Validate();
@@ -434,23 +434,6 @@ namespace InGameMoney
 			appleAuth.PerformLoginWithAppleIdAndFirebase();
 		}
 
-		public void AutoLoginValidation(UserData userData)
-		{
-			SetupUI(userData.AccountData.mailAddress, userData.AccountData.password, userData.AccountData.autoLogin);
-			if (signedIn)
-			{
-				Print.GreenLog($">>>> OpenGameView from AutoLoginValidation {userData.AccountData.mailAddress}");
-				OpenGameView();
-			}
-			registerGuestAccount.interactable = false;
-			if (AutoLogin.isOn)
-			{
-				ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
-				Login();
-				UpdatePurchaseAndShop();
-			}
-		}
-		
 		public static bool IsFaultedTask(Task<FirebaseUser> task, bool isLogin = false)
 		{
 			if (!isLogin)
