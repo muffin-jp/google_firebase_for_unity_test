@@ -277,42 +277,10 @@ namespace InGameMoney
 		
 		public void OnButtonSignUpWithEmailFirebaseAuth()
 		{
-			if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous && !registerGuestAccount.gameObject.activeSelf)
-			{
-				LinkAuthWithEmailCredential();
-			}
-			else
-			{
-				FirebaseEmailAuthSignUp();
-			}
+			var emailAuth = new EmailAuth();
+			emailAuth.PerformSignUpWithEmail();
 		}
-
-		private async Task FirebaseEmailAuthSignUp()
-		{
-			ObjectManager.Instance.Logs.text = "Creating User Account....";
-
-			var task = auth.CreateUserWithEmailAndPasswordAsync(inputfMailAdress.text, inputfPassword.text)
-				.ContinueWithOnMainThread(signUpTask => signUpTask);
-
-			await task;
-
-			if (task.Result.IsCanceled)
-			{
-				ObjectManager.Instance.Logs.text = "Create User With Email And Password was canceled.";
-				return;
-			}
-
-			if (IsFaultedTask(task.Result)) return;
-
-			var newUser = task.Result;
-			ObjectManager.Instance.Logs.text =
-				$"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
-
-			await SignUpToFirestoreAsync(GetDefaultUserDataFromInputField());
-			WriteUserData();
-			Login();
-		}
-
+		
 		public void OnButtonLoginFirebaseAuth()
 		{
 			ObjectManager.Instance.Logs.text = "Logging In User Account...";
@@ -386,31 +354,6 @@ namespace InGameMoney
 			registerGuestAccount.interactable = true;
 			OnLogout?.Invoke();
 			ObjectManager.Instance.AddDefaultActions();
-		}
-		
-		private void LinkAuthWithEmailCredential()
-		{
-			ObjectManager.Instance.Logs.text = "Linking Guest auth credential ...";
-			var credential = EmailAuthProvider.GetCredential(inputfMailAdress.text, inputfPassword.text);
-			var currentUser = auth.CurrentUser;
-
-			currentUser.LinkWithCredentialAsync(credential).ContinueWith(task =>
-			{
-				if (task.IsCanceled) {
-					ObjectManager.Instance.Logs.text = "LinkWithCredentialAsync was canceled.";
-					return;
-				}
-				if (task.IsFaulted) {
-					ObjectManager.Instance.Logs.text = $"LinkWithCredentialAsync encountered an error: {task.Exception}";
-					return;
-				}
-
-				var newUser = task.Result;
-				ObjectManager.Instance.Logs.text = $"Credentials successfully linked to Firebase userId {newUser.UserId}";
-				LinkAccountToFirestore(inputfMailAdress.text, inputfPassword.text);
-				SetAuthButtonInteraction();
-				OpenGameView();
-			}, TaskScheduler.FromCurrentSynchronizationContext());
 		}
 
 		public static void LinkAccountToFirestore(string email, string password)

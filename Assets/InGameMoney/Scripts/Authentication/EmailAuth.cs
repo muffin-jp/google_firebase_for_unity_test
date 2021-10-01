@@ -1,6 +1,9 @@
 using Firebase.Auth;
 using UnityEngine;
 using UnityEngine.Assertions;
+using System.Threading.Tasks;
+using Firebase.Extensions;
+#pragma warning disable 4014
 
 namespace InGameMoney
 {
@@ -13,7 +16,7 @@ namespace InGameMoney
         {
             auth = FirebaseAuth.DefaultInstance;
             userData = ((UserDataAccess)AccountTest.UserDataAccess).UserData;
-            ObjectManager.Instance.FirstBootLogs.text = $"New NonGuest AppName {auth.App.Name}";
+            ObjectManager.Instance.FirstBootLogs.text = $"New Email Auth AppName {auth.App.Name}";
         }
         
         public void Validate()
@@ -48,6 +51,69 @@ namespace InGameMoney
                 AccountTest.Instance.Login();
                 AccountTest.Instance.UpdatePurchaseAndShop();
             }
+        }
+
+        public void PerformSignUpWithEmail()
+        {
+            if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous && !AccountTest.Instance.RegisterGuestAccount.gameObject.activeSelf)
+            {
+                LinkAuthWithEmailCredential();
+            }
+            else
+            {
+                FirebaseEmailAuthSignUp();
+            }
+        }
+        
+        private void LinkAuthWithEmailCredential()
+        {
+            ObjectManager.Instance.Logs.text = "Linking Guest auth credential ...";
+            var credential = EmailAuthProvider.GetCredential(AccountTest.Instance.InputFieldMailAddress.text, AccountTest.Instance.InputFieldPassword.text);
+            var currentUser = auth.CurrentUser;
+
+            currentUser.LinkWithCredentialAsync(credential).ContinueWith(task =>
+            {
+                if (task.IsCanceled) {
+                    ObjectManager.Instance.Logs.text = "LinkWithCredentialAsync was canceled.";
+                    return;
+                }
+                if (task.IsFaulted) {
+                    ObjectManager.Instance.Logs.text = $"LinkWithCredentialAsync encountered an error: {task.Exception}";
+                    return;
+                }
+                
+                var newUser = task.Result;
+                ObjectManager.Instance.Logs.text = $"Credentials successfully linked to Firebase userId {newUser.UserId}";
+                AccountTest.LinkAccountToFirestore(AccountTest.Instance.InputFieldMailAddress.text, AccountTest.Instance.InputFieldPassword.text);
+                AccountTest.Instance.SetAuthButtonInteraction();
+                AccountTest.Instance.OpenGameView();
+            }, TaskScheduler.FromCurrentSynchronizationContext());
+        }
+        
+        private async Task FirebaseEmailAuthSignUp()
+        {
+            ObjectManager.Instance.Logs.text = "Creating User Account....";
+        
+            var task = auth.CreateUserWithEmailAndPasswordAsync(AccountTest.Instance.InputFieldMailAddress.text, AccountTest.Instance.InputFieldPassword.text)
+                .ContinueWithOnMainThread(signUpTask => signUpTask);
+        
+            await task;
+        
+            if (task.Result.IsCanceled)
+            {
+                ObjectManager.Instance.Logs.text = "Create User With Email And Password was canceled.";
+                return;
+            }
+        
+            if (AccountTest.IsFaultedTask(task.Result)) return;
+        
+            var newUser = task.Result;
+            ObjectManager.Instance.Logs.text =
+                $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
+        
+            await AccountTest.Instance.SignUpToFirestoreAsync(AccountTest.Instance.GetDefaultUserDataFromInputField());
+            AccountTest.Instance.WriteUserData();
+            AccountTest.Instance.Login();
         }
     }
 }
