@@ -19,7 +19,7 @@ using UnityEngine.Serialization;
 
 namespace InGameMoney
 {
-	internal class AccountManager : MonoBehaviour
+	public class AccountManager : MonoBehaviour
 	{
 		[FormerlySerializedAs("_inputfMailAdress")] [SerializeField]
 		private InputField inputfMailAdress;
