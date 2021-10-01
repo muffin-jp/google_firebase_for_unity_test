@@ -19,7 +19,7 @@ using UnityEngine.Serialization;
 
 namespace InGameMoney
 {
-	internal class AccountTest : MonoBehaviour
+	internal class AccountManager : MonoBehaviour
 	{
 		[FormerlySerializedAs("_inputfMailAdress")] [SerializeField]
 		private InputField inputfMailAdress;
@@ -59,7 +59,7 @@ namespace InGameMoney
 
 		public const string AppleUserIdKey = "AppleUserId";
 
-		public static AccountTest Instance { get; private set; }
+		public static AccountManager Instance { get; private set; }
 
 		private void Awake()
 		{

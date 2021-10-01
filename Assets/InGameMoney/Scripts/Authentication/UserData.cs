@@ -62,8 +62,8 @@ namespace InGameMoney {
 		if ( null != accountData ) return;
 		accountData = Data.Read();
 		
-		AccountTest.OnLogin += OnLogin;
-		AccountTest.OnLogout += OnLogout;
+		AccountManager.OnLogin += OnLogin;
+		AccountManager.OnLogout += OnLogout;
 	}
 
 	private void OnLogin()
@@ -85,11 +85,11 @@ namespace InGameMoney {
 
 	private static void UpdateLocalAccountData(User data)
 	{
-		Print.GreenLog($">>>> UpdateLocalUserData HasKey FirebaseSignedWithAppleKey {PlayerPrefs.HasKey(AccountTest.FirebaseSignedWithAppleKey)}");
-		var writeUserData = AccountTest.UserDataAccess;
+		Print.GreenLog($">>>> UpdateLocalUserData HasKey FirebaseSignedWithAppleKey {PlayerPrefs.HasKey(AccountManager.FirebaseSignedWithAppleKey)}");
+		var writeUserData = AccountManager.UserDataAccess;
 		var mailAddress = data.Email;
 		var password = data.Password;
-		var autoLogin = AccountTest.Instance.AutoLogin;
+		var autoLogin = AccountManager.Instance.AutoLogin;
 		writeUserData.WriteAccountData(mailAddress, password, autoLogin);
 	}
 
@@ -115,7 +115,7 @@ namespace InGameMoney {
 	{
 		ObjectManager.Instance.Logs.text = $"Buying {value} Money ... ";
 		var buyId = $"{accountData.mailAddress} Money-{value}-{System.DateTime.Now:HH:mm:ss:tt}";
-		var docRef = AccountTest.Db.Collection("UserMoney")
+		var docRef = AccountManager.Db.Collection("UserMoney")
 			.Document($"{buyId}");
 		var userMoney = new UserMoney
 		{
@@ -174,7 +174,7 @@ namespace InGameMoney {
 	private void UpdateUserMoneyBalance(int moneyBalance)
 	{
 		ObjectManager.Instance.Logs.text = $"Updating User Money Balance ...";
-		var docRef = AccountTest.Db.Collection("Users").Document(accountData.mailAddress);
+		var docRef = AccountManager.Db.Collection("Users").Document(accountData.mailAddress);
 		var updates = new Dictionary<string, object>
 		{
 			{"MoneyBalance", moneyBalance}
@@ -228,7 +228,7 @@ namespace InGameMoney {
 			Password = newUser.Password,
 			SignUpTimeStamp = FieldValue.ServerTimestamp
 		};
-		await AccountTest.Instance.SignUpToFirestoreProcedure(newUserData);
+		await AccountManager.Instance.SignUpToFirestoreProcedure(newUserData);
 		UpdateLocalData(newUserData);
 	}
 
@@ -301,7 +301,7 @@ namespace InGameMoney {
 			return default;
 		}
 		
-		var usersRef = AccountTest.Db.Collection("Users").Document(email);
+		var usersRef = AccountManager.Db.Collection("Users").Document(email);
 		var task = usersRef.GetSnapshotAsync().ContinueWithOnMainThread(readTask => readTask);
 
 		await task;
@@ -328,7 +328,7 @@ namespace InGameMoney {
 	{
 		ObjectManager.Instance.Logs.text = $"Purchase {item}";
 		var docId = $"{accountData.mailAddress} Item-{item}-{System.DateTime.Now:HH:mm:ss:tt}";;
-		var docRef = AccountTest.Db.Collection("UserPurchasedItems").Document(docId);
+		var docRef = AccountManager.Db.Collection("UserPurchasedItems").Document(docId);
 		var purchasedItem = new UserPurchasedItems
 		{
 			Email = accountData.mailAddress,

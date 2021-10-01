@@ -67,7 +67,7 @@ namespace InGameMoney
 
         private void AddActions()
         {
-            firestoreRegistrationAsync = AccountTest.Instance.SignUpToFirestoreAsync;
+            firestoreRegistrationAsync = AccountManager.Instance.SignUpToFirestoreAsync;
         }
 
         private void AddListenerToButtons()

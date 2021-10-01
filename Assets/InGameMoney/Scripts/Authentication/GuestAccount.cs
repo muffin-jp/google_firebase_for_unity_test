@@ -19,8 +19,8 @@ namespace InGameMoney
 
         public void OnGuestLoginButton()
         {
-            AccountTest.InitPersonalData();
-            AccountTest.ResetPersonalData();
+            AccountManager.InitPersonalData();
+            AccountManager.ResetPersonalData();
             SignUpUsingAnonymous();
             ObjectManager.Instance.RegisterGuestAccount.SetActive(true);
         }
@@ -45,21 +45,21 @@ namespace InGameMoney
             var newUser = task.Result;
             ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
             ProceedLogin();
-            var userData = AccountTest.Instance.GetDefaultUserDataFromInputField();
-            await AccountTest.Instance.SignUpToFirestoreAsync(userData);
-            AccountTest.Instance.WriteUserData();
-            AccountTest.Instance.Login();
+            var userData = AccountManager.Instance.GetDefaultUserDataFromInputField();
+            await AccountManager.Instance.SignUpToFirestoreAsync(userData);
+            AccountManager.Instance.WriteUserData();
+            AccountManager.Instance.Login();
         }
 
         private static void ProceedLogin()
         {
             ObjectManager.Instance.FirstBoot.SetActive(false);
             ObjectManager.Instance.InGameMoney.SetActive(true);
-            AccountTest.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
-            if (AccountTest.Instance.SignedIn)
+            AccountManager.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
+            if (AccountManager.Instance.SignedIn)
             {
                 Print.GreenLog($">>>> OpenGameView from OnGuestLoginButton {auth.CurrentUser.Email}");
-                AccountTest.Instance.OpenGameView();
+                AccountManager.Instance.OpenGameView();
             }
         }
     }

@@ -6,15 +6,15 @@ namespace InGameMoney
     {
         public void OnRegisterGuestButton()
         {
-            AccountTest.Instance.CanvasIAP.SetActive(false);
-            AccountTest.Instance.SignInButton.interactable = false;
-            AccountTest.Instance.SignOutButton.interactable = false;
-            AccountTest.Instance.SignUpButton.interactable = true;
-            AccountTest.Instance.InputFieldMailAddress.text = "";
-            AccountTest.Instance.InputFieldPassword.text = "";
-            AccountTest.Instance.InputFieldMailAddress.interactable = true;
-            AccountTest.Instance.InputFieldPassword.interactable = true;
-            AccountTest.OpenSignUpOptionView();
+            AccountManager.Instance.CanvasIAP.SetActive(false);
+            AccountManager.Instance.SignInButton.interactable = false;
+            AccountManager.Instance.SignOutButton.interactable = false;
+            AccountManager.Instance.SignUpButton.interactable = true;
+            AccountManager.Instance.InputFieldMailAddress.text = "";
+            AccountManager.Instance.InputFieldPassword.text = "";
+            AccountManager.Instance.InputFieldMailAddress.interactable = true;
+            AccountManager.Instance.InputFieldPassword.interactable = true;
+            AccountManager.OpenSignUpOptionView();
             gameObject.SetActive(false);
         }
     }

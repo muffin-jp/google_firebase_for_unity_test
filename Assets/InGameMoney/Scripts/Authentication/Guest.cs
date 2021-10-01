@@ -11,24 +11,24 @@ namespace InGameMoney
         public Guest()
         {
             auth = FirebaseAuth.DefaultInstance;
-            userData = ((UserDataAccess)AccountTest.UserDataAccess).UserData;
+            userData = ((UserDataAccess)AccountManager.UserDataAccess).UserData;
         }
         
         public void Validate()
         {
-            if (!AccountTest.Instance.SignedIn && (string.IsNullOrEmpty(userData.AccountData.mailAddress) || string.IsNullOrEmpty(userData.AccountData.password)))
+            if (!AccountManager.Instance.SignedIn && (string.IsNullOrEmpty(userData.AccountData.mailAddress) || string.IsNullOrEmpty(userData.AccountData.password)))
             {
-                AccountTest.Instance.SignOutBecauseLocalDataIsEmpty();
+                AccountManager.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
             }
-            AccountTest.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
-            if (AccountTest.Instance.SignedIn)
+            AccountManager.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
+            if (AccountManager.Instance.SignedIn)
             {
                 Print.GreenLog($">>>> OpenGameView from Guest if SignedIn {auth.CurrentUser.Email}");
-                AccountTest.Instance.OpenGameView();
+                AccountManager.Instance.OpenGameView();
             }
-            AccountTest.Instance.Login();
-            AccountTest.Instance.UpdatePurchaseAndShop();
+            AccountManager.Instance.Login();
+            AccountManager.Instance.UpdatePurchaseAndShop();
         }
     }
 }
