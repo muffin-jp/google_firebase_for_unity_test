@@ -25,7 +25,7 @@ namespace InGameMoney
             ObjectManager.Instance.RegisterGuestAccount.SetActive(true);
         }
 
-        private async void SignUpUsingAnonymous()
+        private static async void SignUpUsingAnonymous()
         {
             ObjectManager.Instance.Logs.text = "Creating Gust User Account....";
             var task = auth.SignInAnonymouslyAsync().ContinueWith(signInTask => signInTask);

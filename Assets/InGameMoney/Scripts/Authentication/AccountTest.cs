@@ -154,16 +154,16 @@ namespace InGameMoney
 		/// <returns></returns>
 		private async Task<bool> ReloadAndCheckErrorPreviousUser()
 		{
-			var reloadAsync = auth.CurrentUser.ReloadAsync();
+			var reloadAsync = auth.CurrentUser.ReloadAsync().ContinueWithOnMainThread(task => task);
 			await reloadAsync;
-			if (reloadAsync.IsCanceled)
+			if (reloadAsync.Result.IsCanceled)
 				return false;
-			if (reloadAsync.IsFaulted)
+			if (reloadAsync.Result.IsFaulted)
 			{
-				Print.RedLog($">>>> ReloadAndCheckErrorPreviousUser Exception {reloadAsync.Exception}");
+				Print.RedLog($">>>> ReloadAndCheckErrorPreviousUser Exception {reloadAsync.Result.Exception?.Message}");
 				return false;
 			}
-			return reloadAsync.IsCompleted;
+			return reloadAsync.Result.IsCompleted;
 		}
 
 		private void Update()
