@@ -1,0 +1,17 @@
+{
+    "name": "AuthenticationEditorAssembly",
+    "references": [
+        "GUID:09ef5922e2d77498aa246abd9073d05f"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
