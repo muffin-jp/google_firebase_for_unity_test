@@ -69,6 +69,7 @@ namespace InGameMoney
                 Print.GreenLog($">>>>  SignInAnonymouslyAsync encountered an error: {task.Exception}");
             }
 
+            Print.GreenLog($">>>> SignInAnonymously Successfully {task.Result.IsCompleted}");
             return task.Result.IsCompleted ? task.Result : default;
         }
         
