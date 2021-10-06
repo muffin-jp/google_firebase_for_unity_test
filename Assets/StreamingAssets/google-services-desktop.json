@@ -1,36 +1,46 @@
 {
+  "project_info": {
+    "project_number": "850321142947",
+    "project_id": "fitnessapp-iap",
+    "storage_bucket": "fitnessapp-iap.appspot.com"
+  },
   "client": [
     {
-      "services": {
-        "appinvite_service": {
-          "status": 1
-        }, 
-        "analytics_service": {
-          "status": 0
+      "client_info": {
+        "mobilesdk_app_id": "1:850321142947:android:fd6cee55c257e2a7397b16",
+        "android_client_info": {
+          "package_name": "virtualwindow.IAPTest.test"
         }
-      }, 
+      },
       "oauth_client": [
         {
-          "client_id": "651543696275-vlv4en9702pjp61teh3f6ve86mfmuehn.apps.googleusercontent.com"
+          "client_id": "850321142947-2q5v96n7jcalkdedpp9a0kv05gms18m0.apps.googleusercontent.com",
+          "client_type": 3
         }
-      ], 
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyAY_JjqeD_Zrl7wl8kfOI7vfWNNlVNNJyg"
+          "current_key": "AIzaSyCl8hIrr0wkESJziXUrdS8vDwNTTTdccdU"
         }
-      ], 
-      "client_info": {
-        "mobilesdk_app_id": "1:651543696275:ios:7c67d282132c262c4f8e66", 
-        "android_client_info": {
-          "package_name": "com.virtualwindow.TestFlight"
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "850321142947-2q5v96n7jcalkdedpp9a0kv05gms18m0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "850321142947-2ar8qansc8tlnbuengcnnu2rbh10ds27.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "virtualwindow.IAPTest.test"
+              }
+            }
+          ]
         }
       }
     }
-  ], 
-  "configuration_version": "1", 
-  "project_info": {
-    "storage_bucket": "fitnessapptesting-1d3ad.appspot.com", 
-    "project_id": "fitnessapptesting-1d3ad", 
-    "project_number": "651543696275"
-  }
+  ],
+  "configuration_version": "1"
 }

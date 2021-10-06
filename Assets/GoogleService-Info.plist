@@ -3,21 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>651543696275-vlv4en9702pjp61teh3f6ve86mfmuehn.apps.googleusercontent.com</string>
+	<string>850321142947-2ar8qansc8tlnbuengcnnu2rbh10ds27.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.651543696275-vlv4en9702pjp61teh3f6ve86mfmuehn</string>
+	<string>com.googleusercontent.apps.850321142947-2ar8qansc8tlnbuengcnnu2rbh10ds27</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAY_JjqeD_Zrl7wl8kfOI7vfWNNlVNNJyg</string>
+	<string>AIzaSyCbjkeLc5WKxqXp9JJhCMoqe26hCphj0tE</string>
 	<key>GCM_SENDER_ID</key>
-	<string>651543696275</string>
+	<string>850321142947</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.virtualwindow.TestFlight</string>
+	<string>virtualwindow.IAPTest.test</string>
 	<key>PROJECT_ID</key>
-	<string>fitnessapptesting-1d3ad</string>
+	<string>fitnessapp-iap</string>
 	<key>STORAGE_BUCKET</key>
-	<string>fitnessapptesting-1d3ad.appspot.com</string>
+	<string>fitnessapp-iap.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:651543696275:ios:7c67d282132c262c4f8e66</string>
+	<string>1:850321142947:ios:38e9e9ea9cd48ec0397b16</string>
 </dict>
 </plist>
