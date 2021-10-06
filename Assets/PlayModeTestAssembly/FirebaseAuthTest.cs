@@ -9,7 +9,7 @@ using UnityEngine.TestTools;
 
 namespace Tests
 {
-    public class GuestAuthTestScript
+    public class FirebaseAuthTest
     {
         private bool initialized;
         private AsyncOperation loadSceneOperation;
