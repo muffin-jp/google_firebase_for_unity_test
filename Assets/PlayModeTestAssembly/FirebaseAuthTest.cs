@@ -7,13 +7,15 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace PlayModeTestAssembly
 {
     public class FirebaseAuthTest
     {
         private bool initialized;
         private AsyncOperation loadSceneOperation;
         private static IEnumerable<string> LevelTestCases => new List<string> {"AnonymousLogin"};
+        private const string Email = "test-runner@email.com";
+        private const string Password = "1234567";
         
         [SetUp]
         public void Setup()
@@ -44,8 +46,9 @@ namespace Tests
             var newUser = await guest.SignInAnonymously();
 
             Assert.That(newUser.Result.IsAnonymous);
-            guest.DeleteUserAsync();
+            await guest.DeleteUserAsync();
             AccountManager.Instance.SignOut();
+            Assert.IsFalse(AccountManager.Instance.SignedIn, "Should be signed out");
         }
         
         private IEnumerator LoadScene(string sceneName)
@@ -61,7 +64,7 @@ namespace Tests
 
         [UnityTest]
         [Timeout(3600000)]
-        public IEnumerator Test2EmailAuthSignUp([ValueSource(nameof(LevelTestCases))] string sceneName)
+        public IEnumerator Test2EmailAuthSignUpAndSignIn([ValueSource(nameof(LevelTestCases))] string sceneName)
         {
             yield return LoadScene(sceneName);
             Print.GreenLog($">>>> TestEmailAuthSignUp");
@@ -74,18 +77,29 @@ namespace Tests
 
         private static async void EmailSignUp()
         {
+            if (AccountManager.Instance.SignedIn) 
+                AccountManager.Instance.SignOut();
             var userData = ((UserDataAccess)AccountManager.UserDataAccess).UserData;
             var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
-            const string email = "test-runner@email.com";
-            const string password = "1234567";
-            var newUser = await emailAuth.EmailAuthSignUp(email, password);
+            var newUser = await emailAuth.EmailAuthSignUp(Email, Password);
             if (newUser.Result != null)
                 Print.GreenLog($">>>> Firebase email auth user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} IsAnonymous {newUser.Result.IsAnonymous} DisplayName {newUser.Result.DisplayName}");
             Assert.IsFalse(newUser.Result != null && newUser.Result.IsAnonymous, "newUser should not anonymous");
-            Assert.IsTrue(newUser.Result != null && newUser.Result.Email == email, "Email is not the same");
+            Assert.IsTrue(newUser.Result != null && newUser.Result.Email == Email, "Email is not the same");
             
-            emailAuth.DeleteUserAsync();
             AccountManager.Instance.SignOut();
+            EmailSignIn(emailAuth);
+        }
+
+        private static async void EmailSignIn(EmailAuth emailAuth)
+        {
+            var loginUser = await emailAuth.SignInWithEmailAndPassword(Email, Password);
+            if (loginUser.Result != null)
+                Print.GreenLog($">>>> Login Successfully");
+            Assert.IsTrue(loginUser.Result != null && loginUser.Result.Email == Email, "Email is not the same");
+            await emailAuth.DeleteUserAsync();
+            AccountManager.Instance.SignOut();
+            Assert.IsFalse(AccountManager.Instance.SignedIn, "Should be signed out");
         }
     }
 }
