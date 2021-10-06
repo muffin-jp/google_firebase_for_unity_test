@@ -25,7 +25,7 @@ namespace InGameMoney
                 AccountManager.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
             }
-            Print.GreenLog($">>>> NonGuest Email {auth.CurrentUser.Email} HasKey Apple {PlayerPrefs.HasKey(AccountManager.AppleUserIdKey)}");
+            Print.GreenLog($">>>> EmailAuth {auth.CurrentUser.Email} IsEmailVerified {auth.CurrentUser.IsEmailVerified} HasKey Apple {PlayerPrefs.HasKey(AccountManager.AppleUserIdKey)}");
             // Need to delete apple user id key before using email to sign in
             Assert.IsFalse(PlayerPrefs.HasKey(AccountManager.AppleUserIdKey));
             
@@ -99,6 +99,7 @@ namespace InGameMoney
             await AccountManager.Instance.SignUpToFirestoreAsync(AccountManager.Instance.GetDefaultUserDataFromInputField());
             AccountManager.Instance.WriteUserData();
             AccountManager.Instance.Login();
+            SendVerificationEmail();
         }
 
         public async Task<Task<FirebaseUser>> EmailAuthSignUp(string emailAddress, string password)
@@ -122,10 +123,65 @@ namespace InGameMoney
 
             return task.Result.IsCompleted ? task.Result : default;
         }
-        
-        public void DeleteUserAsync()
+
+        private async void SendVerificationEmail()
         {
-            DeleteUserAsync(auth);
+            var user = auth.CurrentUser;
+            var verificationTask = user.SendEmailVerificationAsync().ContinueWith(task => task);
+
+            await verificationTask;
+            
+            if (verificationTask.IsCanceled) {
+                Debug.LogError(">>>> SendEmailVerificationAsync was canceled.");
+                return;
+            }
+            if (verificationTask.IsFaulted) {
+                Debug.LogError(">>>> SendEmailVerificationAsync encountered an error: " + verificationTask.Exception);
+                return;
+            }
+
+            Debug.Log(">>>> Verification Email sent successfully.");
+        }
+
+        public async Task FirebaseEmailAuthLogin(string emailAddress, string password)
+        {
+            var login = await SignInWithEmailAndPassword(emailAddress, password);
+            if (login.Result != null) 
+                Print.GreenLog($">>>> Account Logged In, your user ID: {login.Result.UserId}");
+            AccountManager.Instance.WriteUserData();
+            AccountManager.Instance.Login();
+            var data = new User
+            {
+                Email = emailAddress,
+                Password = password
+            };
+            AccountManager.Instance.UpdateLocalData(data);
+        }
+
+        public async Task<Task<FirebaseUser>> SignInWithEmailAndPassword(string emailAddress, string password)
+        {
+            Print.GreenLog(">>>> Logging In User Account...");
+            var loginTask = auth.SignInWithEmailAndPasswordAsync(emailAddress, password)
+                .ContinueWithOnMainThread(task => task);
+			
+            await loginTask;
+
+            if (loginTask.Result.IsCanceled)
+            {
+                Print.RedLog($">>>> SignIn With email {emailAddress} And Password Async was canceled ");
+            }
+
+            if (AccountManager.IsFaultedTask(loginTask.Result, true))
+            {
+                Print.RedLog($">>>> loginTask.Result.Exception {loginTask.Result.Exception}");
+            }
+
+            return loginTask.Result.IsCompleted ? loginTask.Result : default;
+        }
+        
+        public async Task DeleteUserAsync()
+        {
+            await DeleteUserAsync(auth);
         }
     }
 }

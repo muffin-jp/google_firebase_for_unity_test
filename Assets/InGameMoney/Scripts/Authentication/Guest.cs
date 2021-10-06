@@ -86,9 +86,9 @@ namespace InGameMoney
             }
         }
 
-        public void DeleteUserAsync()
+        public async Task DeleteUserAsync()
         {
-            DeleteUserAsync(auth);
+            await DeleteUserAsync(auth);
         }
     }
 }

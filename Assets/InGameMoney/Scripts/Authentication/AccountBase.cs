@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Firebase.Auth;
 using Firebase.Extensions;
 
@@ -5,7 +6,7 @@ namespace InGameMoney
 {
     public class AccountBase
     {
-        protected async void DeleteUserAsync(FirebaseAuth auth)
+        protected async Task DeleteUserAsync(FirebaseAuth auth)
         {
             if (auth.CurrentUser != null)
             {
@@ -17,13 +18,11 @@ namespace InGameMoney
                 if (deleteUser.Result.IsCanceled)
                 {
                     Print.RedLog(">>>> DeleteAsync was canceled.");
-                    return;
                 }
 
                 if (deleteUser.Result.IsFaulted)
                 {
                     Print.RedLog(">>>> DeleteAsync encountered an error: " + deleteUser.Exception);
-                    return;
                 }
                 Print.GreenLog($">>>> User deleted successfully");
             }
