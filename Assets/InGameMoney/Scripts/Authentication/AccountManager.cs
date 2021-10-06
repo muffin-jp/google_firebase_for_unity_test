@@ -19,7 +19,7 @@ using UnityEngine.Serialization;
 
 namespace InGameMoney
 {
-	internal class AccountManager : MonoBehaviour
+	public class AccountManager : MonoBehaviour
 	{
 		[FormerlySerializedAs("_inputfMailAdress")] [SerializeField]
 		private InputField inputfMailAdress;
@@ -134,7 +134,7 @@ namespace InGameMoney
 			IAccountBase accountBase;
 			if (auth.CurrentUser.IsAnonymous)
 			{
-				accountBase = new Guest();
+				accountBase = new Guest(FirebaseAuth.DefaultInstance);
 			}
 			else if (PlayerPrefs.HasKey(FirebaseSignedWithAppleKey))
 			{
@@ -189,7 +189,7 @@ namespace InGameMoney
 
 		public static void OpenSignUpOptionView()
 		{
-			ObjectManager.Instance.InGameMoney.SetActive(false);
+			if (ObjectManager.Instance.InGameMoney) ObjectManager.Instance.InGameMoney.SetActive(false);
 			ObjectManager.Instance.FirstBoot.SetActive(true);
 			ObjectManager.Instance.ResetFirstBootView();
 		}

@@ -5,62 +5,12 @@ namespace InGameMoney
 {
     public class GuestAccount : MonoBehaviour
     {
-        private static FirebaseAuth auth;
-        
-        private void Awake()
-        {
-            InitializeFirebase();
-        }
-
-        private static void InitializeFirebase()
-        {
-            auth = FirebaseAuth.DefaultInstance;
-        }
-
         public void OnGuestLoginButton()
         {
-            AccountManager.InitPersonalData();
-            AccountManager.ResetPersonalData();
-            SignUpUsingAnonymous();
-            ObjectManager.Instance.RegisterGuestAccount.SetActive(true);
-        }
-
-        private static async void SignUpUsingAnonymous()
-        {
-            ObjectManager.Instance.Logs.text = "Creating Gust User Account....";
-            var task = auth.SignInAnonymouslyAsync().ContinueWith(signInTask => signInTask);
-
-            await task;
-            
-            if (task.Result.IsCanceled)
-            {
-                ObjectManager.Instance.Logs.text = "SignInAnonymouslyAsync was canceled.";
-            }
-            
-            if (task.Result.IsFaulted)
-            {
-                ObjectManager.Instance.Logs.text = $"SignInAnonymouslyAsync encountered an error: {task.Exception}";
-            }
-
-            var newUser = task.Result;
-            ObjectManager.Instance.Logs.text = $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
-            ProceedLogin();
-            var userData = AccountManager.Instance.GetDefaultUserDataFromInputField();
-            await AccountManager.Instance.SignUpToFirestoreAsync(userData);
-            AccountManager.Instance.WriteUserData();
-            AccountManager.Instance.Login();
-        }
-
-        private static void ProceedLogin()
-        {
-            ObjectManager.Instance.FirstBoot.SetActive(false);
-            ObjectManager.Instance.InGameMoney.SetActive(true);
-            AccountManager.Instance.SetupUI($"匿名@{auth.CurrentUser.UserId}", $"vw-guest-pass@{auth.CurrentUser.UserId}", false);
-            if (AccountManager.Instance.SignedIn)
-            {
-                Print.GreenLog($">>>> OpenGameView from OnGuestLoginButton {auth.CurrentUser.Email}");
-                AccountManager.Instance.OpenGameView();
-            }
+            var guest = new Guest(FirebaseAuth.DefaultInstance);
+#pragma warning disable 4014
+            guest.PerformGuestLogin();
+#pragma warning restore 4014
         }
     }
 }
