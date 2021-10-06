@@ -97,11 +97,13 @@ namespace InGameMoney {
 		/// </summary>
 		public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
 		{
+#if false
 			foreach (var product in controller.products.all)
 			{
 				ObjectManager.Instance.Logs.text =
 					$"In-App Purchasing successfully initialized definition {product.definition.id}";
 			}
+#endif
 
 			mStoreController = controller;
 		}

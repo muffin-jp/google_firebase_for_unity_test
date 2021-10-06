@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Firebase.Extensions;
 using Firebase.Firestore;
-using UnityEngine;
+using UnityEngine.Assertions;
+#pragma warning disable 4014
 
 namespace InGameMoney {
-	internal class UserData
+	public class UserData
 {
 	//singleton.
 	public static UserData Instance => instance ?? (instance = new UserData());
 
-	static UserData instance;
+	private static UserData instance;
 	private UserData(){}
 
 	[System.Serializable]
@@ -62,6 +62,25 @@ namespace InGameMoney {
 		if ( null != _personalData ) return;
 		_personalData = PersonalData.Read();
 
+		UpdateLocalUserData();
+		UpdatePurchaseAndShop();
+	}
+
+	private static void UpdateLocalUserData()
+	{
+		IWriteUserData writeUserData = AccountTest.UserDataAccess;
+		var mailAddress = AccountTest.Instance.InputFieldMailAddress.text;
+		var password = AccountTest.Instance.InputFieldPassword.text;
+		var autoLogin = AccountTest.Instance.AutoLogin;
+		writeUserData.WriteData(mailAddress, password, autoLogin);
+	}
+
+	private async void UpdatePurchaseAndShop()
+	{
+		await ReadUserData();
+
+		_personalData.purchasedMoney = (int) moneyBalance;
+		_personalData.Write();
 		ObjectManager.Instance.Purchase.UpdateText();
 		ObjectManager.Instance.Shop.UpdateText();
 	}
@@ -131,7 +150,7 @@ namespace InGameMoney {
 
 			if (task.IsFaulted)
 			{
-				ObjectManager.Instance.Logs.text = "Update Data Failed Failed !";
+				ObjectManager.Instance.Logs.text = "UpdateUserMoneyBalance Data Failed !";
 				return;
 			}
 
@@ -140,6 +159,25 @@ namespace InGameMoney {
 				ObjectManager.Instance.Logs.text = $"Succeed updating money balance | balance : {moneyBalance}";
 			}
 		});
+	}
+
+	public void UpdateFirestoreUserDataAfterCredentialLinked()
+	{
+		UpdateFirestoreUserData();
+	}
+
+	private async Task UpdateFirestoreUserData()
+	{
+		ObjectManager.Instance.Logs.text = $"Updating User data, such as email and password, etc";
+		var oldUserData = await GetUserData();
+		var newUserData = new User
+		{
+			Email = AccountTest.Instance.InputFieldMailAddress.text,
+			MoneyBalance = oldUserData.MoneyBalance,
+			Password = AccountTest.Instance.InputFieldPassword.text,
+			SignUpTimeStamp = FieldValue.ServerTimestamp
+		};
+		AccountTest.Instance.SignUpToFirestoreProcedure(newUserData);
 	}
 
 	public enum Item {
@@ -190,34 +228,36 @@ namespace InGameMoney {
 		else ObjectManager.Instance.Logs.text = $"Not Enough money to buy {item}";
 	}
 
-	// Read user data from firestore to prevent cheat
+	// Sync user data from firestore to prevent cheat
 	private async Task ReadUserData()
 	{
-		var usersRef = AccountTest.Db.Collection("Users");
-		moneyBalance = 0;
-		await usersRef.GetSnapshotAsync().ContinueWithOnMainThread(task =>
-		{
-			if (task.IsCanceled) { ObjectManager.Instance.Logs.text = "An Error Occurred !"; return; }
-			if (task.IsFaulted) { ObjectManager.Instance.Logs.text = "Add Data Failed Failed !"; return; }
-			var snapshot = task.Result;
-			
-			if (snapshot.Documents == null || !snapshot.Documents.Any())
-			{
-				ObjectManager.Instance.Logs.text = $"Data is null or empty";
-				return;
-			}
+		var userData = await GetUserData();
+		Assert.IsNotNull(userData, "User data should not null");
+		moneyBalance = userData.MoneyBalance;
+	}
 
-			var document = snapshot.Documents.FirstOrDefault(x =>
-			{
-				var dict = x.ToDictionary();
-				return dict.ContainsValue(_data.mailAddress);
-			});
-			
-			var documentDict = document?.ToDictionary();
-			if (documentDict != null)
-				moneyBalance = (long) documentDict["MoneyBalance"];
-			else Debug.LogError($"MoneyBalance is null {_data.mailAddress}");
-		});
+	private async Task<User> GetUserData()
+	{
+		var usersRef = AccountTest.Db.Collection("Users").Document(_data.mailAddress);
+		var task = usersRef.GetSnapshotAsync().ContinueWithOnMainThread(readTask => readTask);
+		if (task.IsCanceled) 
+			ObjectManager.Instance.Logs.text = "An Error Occurred !";
+
+		await task;
+		
+		if (task.IsFaulted) 
+			ObjectManager.Instance.Logs.text = "Add Data Failed Failed !";
+		
+		var snapshot = task.Result.Result;
+		if (snapshot.Exists)
+		{
+			ObjectManager.Instance.Logs.text = $"Document exist! for {snapshot.Id}";
+			var user = snapshot.ConvertTo<User>();
+			return user;
+		}
+
+		ObjectManager.Instance.Logs.text = $"Document does not exist! {snapshot.Id}";
+		return default;
 	}
 
 	private void PurchaseItem(int value, Item item)
