@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/InGameMoney/Scenes/AnonymousLogin.unity
+    path: Assets/InGameMoney/Scenes/FirebaseAuthentication.unity
     guid: 52a73319099d44c5fb7c83129bd70640
   m_configObjects: {}
