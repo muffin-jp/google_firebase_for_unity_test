@@ -283,41 +283,14 @@ namespace InGameMoney
 			emailAuth.PerformSignUpWithEmail(inputfMailAdress.text, inputfPassword.text);
 		}
 		
-		public void OnButtonLoginFirebaseAuth()
+		public void OnButtonLoginWithEmailAuth()
 		{
-			ObjectManager.Instance.Logs.text = "Logging In User Account...";
-			FirebaseEmailAuthLogin();
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
+			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+			emailAuth.FirebaseEmailAuthLogin(inputfMailAdress.text, inputfPassword.text);
 		}
 
-		private async Task FirebaseEmailAuthLogin()
-		{
-			ObjectManager.Instance.Logs.text = "Logging In User Account...";
-			var loginTask = auth.SignInWithEmailAndPasswordAsync(inputfMailAdress.text, inputfPassword.text)
-				.ContinueWithOnMainThread(task => task);
-			
-			await loginTask;
-
-			if (loginTask.Result.IsCanceled)
-			{
-				ObjectManager.Instance.Logs.text = $"SignIn With email {inputfMailAdress.text} And Password Async was canceled ";
-				return;
-			}
-			
-			if (IsFaultedTask(loginTask.Result, true)) return;
-			
-			var login = loginTask.Result;
-			ObjectManager.Instance.Logs.text = $"Account Logged In, your user ID: {login.Result.UserId}";
-			WriteUserData();
-			Login();
-			var userData = new User
-			{
-				Email = inputfMailAdress.text,
-				Password = inputfPassword.text
-			};
-			UpdateLocalData(userData);
-		}
-
-		private void UpdateLocalData(User userData)
+		public void UpdateLocalData(User userData)
 		{
 			var dataAccess = UserDataAccess as UserDataAccess;
 			dataAccess?.UpdateLocalData(userData);
