@@ -132,6 +132,7 @@ namespace InGameMoney
 		private void InitializeAuthentication()
 		{
 			IAccountBase accountBase;
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
 			if (auth.CurrentUser.IsAnonymous)
 			{
 				accountBase = new Guest(FirebaseAuth.DefaultInstance);
@@ -142,7 +143,7 @@ namespace InGameMoney
 			}
 			else
 			{
-				accountBase = new EmailAuth();
+				accountBase = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
 			}
 
 			accountBase.Validate();
@@ -190,7 +191,7 @@ namespace InGameMoney
 		public static void OpenSignUpOptionView()
 		{
 			if (ObjectManager.Instance.InGameMoney) ObjectManager.Instance.InGameMoney.SetActive(false);
-			ObjectManager.Instance.FirstBoot.SetActive(true);
+			if (ObjectManager.Instance.FirstBoot) ObjectManager.Instance.FirstBoot.SetActive(true);
 			ObjectManager.Instance.ResetFirstBootView();
 		}
 
@@ -277,8 +278,9 @@ namespace InGameMoney
 		
 		public void OnButtonSignUpWithEmailFirebaseAuth()
 		{
-			var emailAuth = new EmailAuth();
-			emailAuth.PerformSignUpWithEmail();
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
+			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+			emailAuth.PerformSignUpWithEmail(inputfMailAdress.text, inputfPassword.text);
 		}
 		
 		public void OnButtonLoginFirebaseAuth()

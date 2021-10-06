@@ -103,8 +103,8 @@ namespace InGameMoney
 
         public void ResetFirstBootView()
         {
-            signUpWithGuestButton.gameObject.SetActive(true);
-            signInOrTakeOver.gameObject.SetActive(true);
+            if (signUpWithGuestButton) signUpWithGuestButton.gameObject.SetActive(true);
+            if (signInOrTakeOver) signInOrTakeOver.gameObject.SetActive(true);
         }
 
         public void ResetInputField()
