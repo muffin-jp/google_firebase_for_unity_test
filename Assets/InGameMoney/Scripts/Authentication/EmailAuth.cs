@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using System.Threading.Tasks;
 using Firebase.Extensions;
+using Gravitons.UI.Modal;
+
 #pragma warning disable 4014
 
 namespace InGameMoney
@@ -98,7 +100,6 @@ namespace InGameMoney
         
             await AccountManager.Instance.SignUpToFirestoreAsync(AccountManager.Instance.GetDefaultUserDataFromInputField());
             AccountManager.Instance.WriteUserData();
-            AccountManager.Instance.Login();
             SendVerificationEmail();
         }
 
@@ -141,6 +142,13 @@ namespace InGameMoney
             }
 
             Debug.Log(">>>> Verification Email sent successfully.");
+            var show = ModalManager.Show("Verification Email Sent Successfully",
+                "Please check your email and click link verification",
+                new[] { new ModalButton { 
+                    Text = "OK", 
+                    Callback = AccountManager.Instance.Login 
+                } 
+                });
         }
 
         public async Task FirebaseEmailAuthLogin(string emailAddress, string password)
