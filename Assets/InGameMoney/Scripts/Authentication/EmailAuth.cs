@@ -7,16 +7,15 @@ using Firebase.Extensions;
 
 namespace InGameMoney
 {
-    public class EmailAuth : IAccountBase
+    public class EmailAuth : AccountBase, IAccountBase
     {
         private readonly FirebaseAuth auth;
         private readonly UserData userData;
 
-        public EmailAuth()
+        public EmailAuth(FirebaseAuth auth, UserData userData)
         {
-            auth = FirebaseAuth.DefaultInstance;
-            userData = ((UserDataAccess)AccountManager.UserDataAccess).UserData;
-            ObjectManager.Instance.FirstBootLogs.text = $"New Email Auth AppName {auth.App.Name}";
+            this.auth = auth;
+            this.userData = userData;
         }
         
         public void Validate()
@@ -53,7 +52,7 @@ namespace InGameMoney
             }
         }
 
-        public void PerformSignUpWithEmail()
+        public void PerformSignUpWithEmail(string emailAddress, string password)
         {
             if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous && !AccountManager.Instance.RegisterGuestAccount.gameObject.activeSelf)
             {
@@ -61,7 +60,7 @@ namespace InGameMoney
             }
             else
             {
-                FirebaseEmailAuthSignUp();
+                FirebaseEmailAuthSignUp(emailAddress, password);
             }
         }
         
@@ -90,30 +89,43 @@ namespace InGameMoney
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }
         
-        private async Task FirebaseEmailAuthSignUp()
+        private async Task FirebaseEmailAuthSignUp(string emailAddress, string password)
         {
-            ObjectManager.Instance.Logs.text = "Creating User Account....";
+            var newUser = await EmailAuthSignUp(emailAddress, password);
+
+            if (newUser.Result != null)
+                Print.GreenLog($">>>> Firebase email auth user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} IsAnonymous {newUser.Result.IsAnonymous} DisplayName {newUser.Result.DisplayName}");
         
-            var task = auth.CreateUserWithEmailAndPasswordAsync(AccountManager.Instance.InputFieldMailAddress.text, AccountManager.Instance.InputFieldPassword.text)
+            await AccountManager.Instance.SignUpToFirestoreAsync(AccountManager.Instance.GetDefaultUserDataFromInputField());
+            AccountManager.Instance.WriteUserData();
+            AccountManager.Instance.Login();
+        }
+
+        public async Task<Task<FirebaseUser>> EmailAuthSignUp(string emailAddress, string password)
+        {
+            Print.GreenLog(">>>> Creating User Account....");
+        
+            var task = auth.CreateUserWithEmailAndPasswordAsync(emailAddress, password)
                 .ContinueWithOnMainThread(signUpTask => signUpTask);
         
             await task;
         
             if (task.Result.IsCanceled)
             {
-                ObjectManager.Instance.Logs.text = "Create User With Email And Password was canceled.";
-                return;
+                Print.GreenLog(">>>> Create User With Email And Password was canceled.");
             }
+
+            if (AccountManager.IsFaultedTask(task.Result))
+            {
+                Print.RedLog($"Exception {task.Result.Exception}");
+            }
+
+            return task.Result.IsCompleted ? task.Result : default;
+        }
         
-            if (AccountManager.IsFaultedTask(task.Result)) return;
-        
-            var newUser = task.Result;
-            ObjectManager.Instance.Logs.text =
-                $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
-        
-            await AccountManager.Instance.SignUpToFirestoreAsync(AccountManager.Instance.GetDefaultUserDataFromInputField());
-            AccountManager.Instance.WriteUserData();
-            AccountManager.Instance.Login();
+        public void DeleteUserAsync()
+        {
+            DeleteUserAsync(auth);
         }
     }
 }

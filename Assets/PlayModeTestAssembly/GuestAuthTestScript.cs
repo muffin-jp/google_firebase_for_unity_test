@@ -27,7 +27,7 @@ namespace Tests
 
         [UnityTest]
         [Timeout(3600000)]
-        public IEnumerator GuestAuthTestSignUp([ValueSource(nameof(LevelTestCases))] string sceneName)
+        public IEnumerator Test1GuestAuthSignUp([ValueSource(nameof(LevelTestCases))] string sceneName)
         {
             yield return LoadScene(sceneName);
             Assert.IsTrue(loadSceneOperation.isDone, "Scene not loaded");
@@ -58,6 +58,34 @@ namespace Tests
                 yield return null;
             }
         }
-        
+
+        [UnityTest]
+        [Timeout(3600000)]
+        public IEnumerator Test2EmailAuthSignUp([ValueSource(nameof(LevelTestCases))] string sceneName)
+        {
+            yield return LoadScene(sceneName);
+            Print.GreenLog($">>>> TestEmailAuthSignUp");
+            Assert.IsTrue(loadSceneOperation.isDone, "Scene not loaded");
+            
+            EmailSignUp();
+            // Wait to avoid errors missing firebase logger game object
+            yield return new WaitForSeconds(2);
+        }
+
+        private static async void EmailSignUp()
+        {
+            var userData = ((UserDataAccess)AccountManager.UserDataAccess).UserData;
+            var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+            const string email = "test-runner@email.com";
+            const string password = "1234567";
+            var newUser = await emailAuth.EmailAuthSignUp(email, password);
+            if (newUser.Result != null)
+                Print.GreenLog($">>>> Firebase email auth user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} IsAnonymous {newUser.Result.IsAnonymous} DisplayName {newUser.Result.DisplayName}");
+            Assert.IsFalse(newUser.Result != null && newUser.Result.IsAnonymous, "newUser should not anonymous");
+            Assert.IsTrue(newUser.Result != null && newUser.Result.Email == email, "Email is not the same");
+            
+            emailAuth.DeleteUserAsync();
+            AccountManager.Instance.SignOut();
+        }
     }
 }

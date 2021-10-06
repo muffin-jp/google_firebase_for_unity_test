@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace InGameMoney
 {
-    public class AppleAuth : IAccountBase
+    public class AppleAuth : AccountBase, IAccountBase
     {
         private readonly FirebaseAuth auth;
         private readonly UserData userData;

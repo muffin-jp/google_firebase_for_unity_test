@@ -4,7 +4,7 @@ using Firebase.Extensions;
 
 namespace InGameMoney
 {
-    public class Guest : IAccountBase
+    public class Guest : AccountBase, IAccountBase
     {
         private readonly FirebaseAuth auth;
         private readonly UserData userData;
@@ -45,7 +45,8 @@ namespace InGameMoney
             Print.GreenLog("Creating Gust User Account....");
 
             var newUser = await SignInAnonymously();
-            Print.GreenLog($">>>> Firebase guest user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}");
+            if (newUser.Result != null) 
+                Print.GreenLog($">>>> Firebase guest user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}");
             ProceedLogin();
             var userDataFromInputField = AccountManager.Instance.GetDefaultUserDataFromInputField();
             await AccountManager.Instance.SignUpToFirestoreAsync(userDataFromInputField);
@@ -85,26 +86,9 @@ namespace InGameMoney
             }
         }
 
-        public async void DeleteUserAsync()
+        public void DeleteUserAsync()
         {
-            if (auth.CurrentUser != null)
-            {
-                var deleteUser = auth.CurrentUser.DeleteAsync().ContinueWithOnMainThread(task => task);
-
-                await deleteUser;
-                if (deleteUser.Result.IsCanceled)
-                {
-                    Print.RedLog(">>>> DeleteAsync was canceled.");
-                    return;
-                }
-
-                if (deleteUser.Result.IsFaulted)
-                {
-                    Print.RedLog(">>>> DeleteAsync encountered an error: " + deleteUser.Exception);
-                    return;
-                }
-                Print.GreenLog($">>>> User deleted successfully");
-            }
+            DeleteUserAsync(auth);
         }
     }
 }

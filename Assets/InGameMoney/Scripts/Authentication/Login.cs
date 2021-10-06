@@ -10,21 +10,21 @@ namespace InGameMoney
             if (task.IsFaulted) {
 
                 if (AuthUtility.CheckError (task.Exception, (int)AuthError.WrongPassword)) {
-                    ObjectManager.Instance.Logs.text = "Password is Wrong";
+                    Print.RedLog($">>>> Password is Wrong");
                 } else if (AuthUtility.CheckError (task.Exception, (int)AuthError.AccountExistsWithDifferentCredentials)) {
-                    ObjectManager.Instance.Logs.text = "Account Exists With Different Credentials";
+                    Print.RedLog($">>>> Account Exists With Different Credentials");
                 } else if (AuthUtility.CheckError (task.Exception, (int)AuthError.InvalidEmail)) {
-                    ObjectManager.Instance.Logs.text = "Invalid Email";
+                    Print.RedLog($">>>> Invalid Email");
                 } else if (AuthUtility.CheckError (task.Exception, (int)AuthError.MissingPassword)) {
-                    ObjectManager.Instance.Logs.text = "Password is Missing";
+                    Print.RedLog($">>>> Password is Missing");
                 } else if (AuthUtility.CheckError (task.Exception, (int)AuthError.MissingEmail)) {
-                    ObjectManager.Instance.Logs.text = "Email is Missing";
+                    Print.RedLog($">>>> Email is Missing");
                 } else if (AuthUtility.CheckError (task.Exception, (int)AuthError.UserNotFound)) {
-                    ObjectManager.Instance.Logs.text = "User Not Found";
+                    Print.RedLog($">>>> User Not Found");
                 } else if (AuthUtility.CheckError (task.Exception, (int)AuthError.TooManyRequests)) {
-                    ObjectManager.Instance.Logs.text = "Too Many Requests, Please wait for 60 Seconds";
+                    Print.RedLog($">>>> Too Many Requests, Please wait for 60 Seconds");
                 } else {
-                    ObjectManager.Instance.Logs.text = "Something went wrong, Try again later.";
+                    Print.RedLog($">>>> Something went wrong, Try again later.");
                 }
 
                 return true;
