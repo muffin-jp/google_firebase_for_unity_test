@@ -35,7 +35,7 @@ namespace InGameMoney {
 
 		public void UpdateText()
 		{
-			_text.text = "Purchased Gold : " + UserData.Instance.purchasedMoney;
+			_text.text = $"{ObjectManager.PurchasedMoneyPrefix}{UserData.Instance.purchasedMoney}";
 		}
 		
 		/// <summary>
