@@ -13,7 +13,7 @@ namespace PlayModeTestAssembly
     {
         private bool initialized;
         private AsyncOperation loadSceneOperation;
-        private static IEnumerable<string> LevelTestCases => new List<string> {"AnonymousLogin"};
+        private static IEnumerable<string> LevelTestCases => new List<string> {"FirebaseAuthentication"};
         private const string Email = "test-runner@email.com";
         private const string Password = "1234567";
         
