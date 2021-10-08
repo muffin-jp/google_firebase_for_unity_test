@@ -42,6 +42,7 @@ namespace InGameMoney
             {
                 Print.GreenLog($">>>> OpenGameView from AutoLoginValidation {currentUserData.AccountData.mailAddress}");
                 AccountManager.Instance.OpenGameView();
+                ObjectManager.Instance.ForgotPasswordButton.gameObject.SetActive(true);
             }
             
             AccountManager.Instance.RegisterGuestAccount.interactable = false;
@@ -85,7 +86,7 @@ namespace InGameMoney
                 
                 var newUser = task.Result;
                 ObjectManager.Instance.Logs.text = $"Credentials successfully linked to Firebase userId {newUser.UserId}";
-                AccountManager.LinkAccountToFirestore(AccountManager.Instance.InputFieldMailAddress.text, AccountManager.Instance.InputFieldPassword.text);
+                AccountManager.UpdateFirestoreUserDataAfterCredentialLinked(AccountManager.Instance.InputFieldMailAddress.text, AccountManager.Instance.InputFieldPassword.text);
                 AccountManager.Instance.SetAuthButtonInteraction();
                 AccountManager.Instance.OpenGameView();
             }, TaskScheduler.FromCurrentSynchronizationContext());
@@ -142,7 +143,7 @@ namespace InGameMoney
             }
 
             Debug.Log(">>>> Verification Email sent successfully.");
-            var show = ModalManager.Show("Verification Email Sent Successfully",
+            ModalManager.Show("Verification Email Sent Successfully",
                 "Please check your email and click link verification",
                 new[] { new ModalButton { 
                     Text = "OK", 
@@ -190,6 +191,27 @@ namespace InGameMoney
         public async Task DeleteUserAsync()
         {
             await DeleteUserAsync(auth);
+        }
+
+        public async Task<bool> UpdatePasswordAsync(string newPassword)
+        {
+            var user = auth.CurrentUser;
+            var updateTask = user.UpdatePasswordAsync(newPassword)
+                .ContinueWithOnMainThread(task => task);
+
+            await updateTask;
+            
+            if (updateTask.Result.IsCanceled) {
+                Print.RedLog(">>>> UpdatePasswordAsync was canceled.");
+                return false;
+            }
+            if (updateTask.Result.IsFaulted) {
+                Print.RedLog(">>>> UpdatePasswordAsync encountered an error: " + updateTask.Result.Exception);
+                return false;
+            }
+
+            Print.GreenLog($">>>> UpdatePasswordAsync IsCompleted {updateTask.Result.IsCompleted}");
+            return updateTask.Result.IsCompleted;
         }
     }
 }

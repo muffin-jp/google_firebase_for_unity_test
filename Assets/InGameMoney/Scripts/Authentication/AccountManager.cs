@@ -9,6 +9,7 @@ using AppleAuth.Native;
 using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.Firestore;
+using Gravitons.UI.Modal;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
@@ -34,7 +35,7 @@ namespace InGameMoney
 		[SerializeField] private Button registerGuestAccount;
 
 		private static FirebaseFirestore db;
-		private FirebaseAuth auth;
+		private static FirebaseAuth auth;
 		private FirebaseUser user;
 		private bool signedIn;
 		private static ITaskFault taskFault;
@@ -229,15 +230,13 @@ namespace InGameMoney
 			}
 		}
 
-		public async Task SignUpToFirestoreProcedure(User data)
+		public async Task SignUpToFirestoreProcedure(User data, bool login = true)
 		{
 			await SignUpToFirestoreAsync(data);
-			// Print.GreenLog($">>>> WriteUserData Email {data.Email}");
-			// WriteUserData(data);
-			Login();
+			if (login) Login();
 		}
 
-		public async Task SignUpToFirestoreAsync(User data)
+		public async Task SignUpToFirestoreAsync(User data, bool login = false)
 		{
 			Print.GreenLog($">>>> SignUpToFirestoreAsync Email {data.Email}");
 			var docRef = db.Collection("Users").Document(data.Email);
@@ -306,6 +305,7 @@ namespace InGameMoney
 		{
 			SetAuthButtonInteraction();
 			canvasIap.SetActive(true);
+			ObjectManager.Instance.ForgotPasswordButton.gameObject.SetActive(false);
 			inputfMailAdress.interactable = false;
 			inputfPassword.interactable = false;
 			OnLogin?.Invoke();
@@ -328,13 +328,18 @@ namespace InGameMoney
 			signInButton.interactable = true;
 			registerGuestAccount.interactable = true;
 			OnLogout?.Invoke();
-			ObjectManager.Instance.AddDefaultActions();
+			ObjectManager.Instance.RemoveAndAddListeners();
 		}
 
-		public static void LinkAccountToFirestore(string email, string password)
+		public static void UpdateFirestoreUserDataAfterCredentialLinked(string email, string password)
+		{
+			UpdateFirestoreUserData(email, password);
+		}
+
+		private static void UpdateFirestoreUserData(string email, string password, bool login = true)
 		{
 			var dataAccess = UserDataAccess as UserDataAccess;
-			dataAccess?.UpdateFirestoreUserDataAfterCredentialLinked(email, password);
+			dataAccess?.UpdateFirestoreUserData(email, password, login);
 		}
 		
 		public void SetAuthButtonInteraction()
@@ -366,6 +371,45 @@ namespace InGameMoney
 		{
 			var userData = UserDataAccess as UserDataAccess;
 			userData?.ResetPersonalData();
+		}
+
+		/// <summary>
+		/// Reset Password current signed in user.
+		/// Note this method doesn't work if auth.CurrentUser is null,
+		/// it means user must login once using email authentication,
+		/// this is also useful if user want to change password
+		/// </summary>
+		/// <param name="newPassword"></param>
+		public static async void ResetEmailAuthPassword(string newPassword)
+		{
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
+			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+			
+			var resetPasswordIsCompleted = await emailAuth.UpdatePasswordAsync(newPassword);
+
+			if (resetPasswordIsCompleted)
+			{
+				UserDataAccess.WriteAccountData(userData.AccountData.mailAddress, newPassword, false);
+				ModalManager.Show("Successfully Reset Password", "Now Can Sign In", new[]
+				{
+					new ModalButton
+					{
+						Text = "OK",
+						Callback = OnFinishResetPasswordCallback
+					}
+				});
+			}
+			else
+			{
+				Print.RedLog($">>>> Password reset failed!");
+			}
+		}
+
+		private static void OnFinishResetPasswordCallback()
+		{
+			ObjectManager.Instance.OnFinishResetPassword();
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
+			UpdateFirestoreUserData(userData.AccountData.mailAddress, userData.AccountData.password, false);
 		}
 
 		public static void InitPersonalData()

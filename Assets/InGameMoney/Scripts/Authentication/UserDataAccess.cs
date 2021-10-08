@@ -58,9 +58,9 @@ namespace InGameMoney
             userData.UpdateLocalData(data);
         }
 
-        public void UpdateFirestoreUserDataAfterCredentialLinked(string email, string password)
+        public void UpdateFirestoreUserData(string email, string password, bool login = true)
         {
-            userData.UpdateFirestoreUserDataAfterCredentialLinked(email, password);
+            userData.UpdateFirestoreUserData(email, password, login);
         }
     }
 }

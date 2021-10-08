@@ -98,6 +98,7 @@ namespace InGameMoney {
 		Print.GreenLog($">>>> UpdatePurchaseAndShop");
 		await ReadUserData();
 
+		if (personalData == null) return;
 		personalData.purchasedMoney = (int) moneyBalance;
 		personalData.Write();
 		ObjectManager.Instance.Purchase.UpdateText();
@@ -201,23 +202,23 @@ namespace InGameMoney {
 		});
 	}
 
-	public void UpdateFirestoreUserDataAfterCredentialLinked(string email, string password)
+	public void UpdateFirestoreUserData(string email, string password, bool login = true)
 	{
 		var user = new User
 		{
 			Email = email,
 			Password = password
 		};
-		UpdateWithPreviousData(user);
+		UpdateWithPreviousData(user, login);
 	}
 
-	private async void UpdateWithPreviousData(User user)
+	private async void UpdateWithPreviousData(User user, bool login = true)
 	{
-		await UpdateFirestoreUserData(user);
+		await UpdateFirestoreUserData(user, login);
 		Print.GreenLog($">>>> Finish UpdateWithPreviousData");
 	}
 
-	public async Task UpdateFirestoreUserData(User newUser)
+	public async Task UpdateFirestoreUserData(User newUser, bool login = true)
 	{
 		Print.GreenLog($">>>> Updating User data, such as email and password, newUser email {newUser.Email}");
 		var previousUserData = await GetUserData(newUser);
@@ -228,7 +229,7 @@ namespace InGameMoney {
 			Password = newUser.Password,
 			SignUpTimeStamp = FieldValue.ServerTimestamp
 		};
-		await AccountManager.Instance.SignUpToFirestoreProcedure(newUserData);
+		await AccountManager.Instance.SignUpToFirestoreProcedure(newUserData, login);
 		UpdateLocalData(newUserData);
 	}
 

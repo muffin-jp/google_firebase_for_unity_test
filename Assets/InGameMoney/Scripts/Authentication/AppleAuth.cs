@@ -203,7 +203,7 @@ namespace InGameMoney
 
                 Print.GreenLog($">>>> Firebase SignInWithCredentialAsync apple succeed Email {data.Email} signedIn {AccountManager.Instance.SignedIn} " + $"UserId {newUser.UserId} " + $"FirebaseSignedWithAppleKey {PlayerPrefs.GetString(AccountManager.FirebaseSignedWithAppleKey)}");
                 
-                await ObjectManager.Instance.FirestoreRegistrationAsync(data);
+                await ObjectManager.Instance.FirestoreRegistrationAsync(data, true);
                 AccountManager.Instance.WriteUserData(data);
                 LoginByAppleId();
             }
@@ -226,7 +226,7 @@ namespace InGameMoney
 
                     var newUser = task.Result;
                     Print.GreenLog($">>>> OpenGameView from Apple Credentials successfully linked to Firebase userId {newUser.UserId}");
-                    AccountManager.LinkAccountToFirestore(newUser.Email, $"vw-apple-pass@{newUser.UserId}");
+                    AccountManager.UpdateFirestoreUserDataAfterCredentialLinked(newUser.Email, $"vw-apple-pass@{newUser.UserId}");
                     AccountManager.Instance.SetAuthButtonInteraction();
                     AccountManager.Instance.OpenGameView();
                 }, TaskScheduler.FromCurrentSynchronizationContext());
