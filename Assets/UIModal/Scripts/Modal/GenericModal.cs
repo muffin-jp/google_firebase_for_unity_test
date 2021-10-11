@@ -46,6 +46,12 @@
                     {
                         modalButton[index].Callback();
                     }
+
+                    if (modalButton[index].CallbackWithParams != null &&
+                        modalButton[index].Params != null)
+                    {
+                        modalButton[index].CallbackWithParams(modalButton[index].Params);
+                    }
                     
                     if (modalButton[index].CloseModalOnClick)
                     {

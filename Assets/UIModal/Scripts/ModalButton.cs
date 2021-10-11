@@ -1,6 +1,8 @@
 namespace Gravitons.UI.Modal
 {
     using System;
+    
+    public delegate void CallbackWithParams (params object[] items);
 
     /// <summary>
     /// Base wrapper class for button properties
@@ -16,6 +18,10 @@ namespace Gravitons.UI.Modal
         /// The callback function that will be called when the button is clicked
         /// </summary>
         public Action Callback { get; set; }
+        
+        public CallbackWithParams CallbackWithParams { get; set; }
+
+        public object[] Params { get; set; }
 
         /// <summary>
         /// When set to true, modal will close automatically if the button is clicked
