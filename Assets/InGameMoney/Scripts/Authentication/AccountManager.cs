@@ -386,12 +386,37 @@ namespace InGameMoney
 			if (resetPasswordIsCompleted)
 			{
 				UserDataAccess.WriteAccountData(userData.AccountData.mailAddress, newPassword, false);
-				ModalManager.Show("Successfully Reset Password", "Now Can Sign In", new[]
+				ModalManager.Show("Successfully Reset Password", "You can now sign in\n with your new password", new[]
 				{
 					new ModalButton
 					{
 						Text = "OK",
 						Callback = OnFinishResetPasswordCallback
+					}
+				});
+			}
+			else
+			{
+				Print.RedLog($">>>> Password reset failed!");
+			}
+		}
+
+		public static async void SendPasswordResetEmail(string emailAddress)
+		{
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
+			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+			PlayerPrefs.SetString(EmailAuth.NeedToUpdatePassword, "yes");
+			
+			var sendPasswordResetEmailCompleted = await emailAuth.SendPasswordResetEmail(emailAddress);
+
+			if (sendPasswordResetEmailCompleted)
+			{
+				ModalManager.Show("Successfully Send Password Reset Email", $"Please check your email at {emailAddress}", new[]
+				{
+					new ModalButton
+					{
+						Text = "OK",
+						Callback = ObjectManager.Instance.OnFinishResetPassword
 					}
 				});
 			}

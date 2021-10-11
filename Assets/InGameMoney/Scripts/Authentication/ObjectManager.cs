@@ -30,6 +30,7 @@ namespace InGameMoney
         [SerializeField] private Button resetPasswordButton;
         [SerializeField] private InputField newPasswordInput;
         [SerializeField] private InputField confirmNewPasswordInput;
+        [SerializeField] private InputField resetPasswordEmailInputField;
         
         private Func<User, bool, Task> firestoreRegistrationAsync;
         
@@ -132,6 +133,38 @@ namespace InGameMoney
         {
             canvasResetPassword.SetActive(true);
             canvasAccount.SetActive(false);
+            if (AccountManager.Instance.SignedIn)
+            {
+                ResetPasswordInputSetActive(true);
+            }
+            else
+            {
+                SendResetPasswordEmailView();
+            }
+        }
+
+        private void SendResetPasswordEmailView()
+        {
+            ResetPasswordInputSetActive(false);
+            resetPasswordButton.onClick.RemoveAllListeners();
+            resetPasswordButton.onClick.AddListener(OnSendResetPasswordEmail);
+        }
+
+        public void OnSendPasswordResetEmailInputChange()
+        {
+            resetPasswordButton.interactable = !string.IsNullOrEmpty(resetPasswordEmailInputField.text);
+        }
+
+        private void OnSendResetPasswordEmail()
+        {
+            AccountManager.SendPasswordResetEmail(resetPasswordEmailInputField.text);
+        }
+
+        private void ResetPasswordInputSetActive(bool activate)
+        {
+            newPasswordInput.gameObject.SetActive(activate);
+            confirmNewPasswordInput.gameObject.SetActive(activate);
+            resetPasswordEmailInputField.gameObject.SetActive(!activate);
         }
 
         public void OnInputConfirmPasswordChanged()

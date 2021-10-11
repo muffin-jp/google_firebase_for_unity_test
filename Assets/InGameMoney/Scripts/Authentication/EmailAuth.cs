@@ -13,6 +13,7 @@ namespace InGameMoney
     {
         private readonly FirebaseAuth auth;
         private readonly UserData userData;
+        public const string NeedToUpdatePassword = "ResetPasswordByEmail";
 
         public EmailAuth(FirebaseAuth auth, UserData userData)
         {
@@ -157,13 +158,21 @@ namespace InGameMoney
             var login = await SignInWithEmailAndPassword(emailAddress, password);
             if (login.Result != null) 
                 Print.GreenLog($">>>> Account Logged In, your user ID: {login.Result.UserId}");
-            AccountManager.Instance.WriteUserData();
-            AccountManager.Instance.Login();
+
             var data = new User
             {
                 Email = emailAddress,
                 Password = password
             };
+            if (PlayerPrefs.HasKey(NeedToUpdatePassword))
+            {
+                await UserData.Instance.UpdateFirestoreUserData(data, false);
+                PlayerPrefs.DeleteKey(NeedToUpdatePassword);
+            }
+            
+            AccountManager.Instance.WriteUserData();
+            AccountManager.Instance.Login();
+            
             AccountManager.Instance.UpdateLocalData(data);
         }
 
@@ -212,6 +221,26 @@ namespace InGameMoney
 
             Print.GreenLog($">>>> UpdatePasswordAsync IsCompleted {updateTask.Result.IsCompleted}");
             return updateTask.Result.IsCompleted;
+        }
+
+        public async Task<bool> SendPasswordResetEmail(string emailAddress)
+        {
+            var sendPasswordTask = auth.SendPasswordResetEmailAsync(emailAddress)
+                .ContinueWithOnMainThread(task => task);
+
+            await sendPasswordTask;
+            
+            if (sendPasswordTask.Result.IsCanceled) {
+                Print.RedLog(">>>> SendPasswordResetEmail was canceled.");
+                return false;
+            }
+            if (sendPasswordTask.Result.IsFaulted) {
+                Print.RedLog(">>>> SendPasswordResetEmail encountered an error: " + sendPasswordTask.Result.Exception);
+                return false;
+            }
+            
+            Print.GreenLog($">>>> SendPasswordResetEmail IsCompleted {sendPasswordTask.Result.IsCompleted}");
+            return sendPasswordTask.Result.IsCompleted;
         }
     }
 }
