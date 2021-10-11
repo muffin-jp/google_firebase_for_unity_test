@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Text;
 using System.Threading.Tasks;
 using AppleAuth;
-using AppleAuth.Enums;
-using AppleAuth.Extensions;
-using AppleAuth.Interfaces;
 using AppleAuth.Native;
 using Firebase.Auth;
 using Firebase.Extensions;
