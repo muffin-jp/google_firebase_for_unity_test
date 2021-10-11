@@ -391,7 +391,8 @@ namespace InGameMoney
 					new ModalButton
 					{
 						Text = "OK",
-						Callback = OnFinishResetPasswordCallback
+						CallbackWithParams = OnFinishResetPasswordCallback,
+						Params = new object[]{ $"{userData.AccountData.mailAddress}", $"{newPassword}"}
 					}
 				});
 			}
@@ -426,11 +427,10 @@ namespace InGameMoney
 			}
 		}
 
-		private static void OnFinishResetPasswordCallback()
+		private static void OnFinishResetPasswordCallback(object[] items)
 		{
 			ObjectManager.Instance.OnFinishResetPassword();
-			var userData = ((UserDataAccess)UserDataAccess).UserData;
-			UpdateFirestoreUserData(userData.AccountData.mailAddress, userData.AccountData.password, false);
+			UpdateFirestoreUserData(items[0] as string, items[1] as string);
 		}
 
 		public static void InitPersonalData()
