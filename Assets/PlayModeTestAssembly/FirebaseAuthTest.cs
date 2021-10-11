@@ -132,5 +132,35 @@ namespace PlayModeTestAssembly
             Assert.IsTrue(resetPasswordIsCompleted, "Reset Password is not completed");
         }
         
+        [UnityTest]
+        [Timeout(3600000)]
+        [TestCase("FirebaseAuthentication", ExpectedResult = null)]
+        public IEnumerator Test4SendPasswordResetEmail(string sceneName)
+        {
+            yield return LoadScene(sceneName);
+            Print.GreenLog($">>>> TestEmailAuthSignUp ");
+            Assert.IsTrue(loadSceneOperation.isDone, "Scene not loaded");
+            
+            SendPasswordResetEmail();
+            // Wait to avoid errors missing firebase logger game object
+            yield return new WaitForSeconds(2);
+        }
+
+        private async void SendPasswordResetEmail()
+        {
+            if (AccountManager.Instance.SignedIn) 
+                AccountManager.Instance.SignOut();
+            Print.GreenLog($"SendPasswordResetEmail AccountManager.Instance.SignedIn {AccountManager.Instance.SignedIn}");
+            var userData = ((UserDataAccess)AccountManager.UserDataAccess).UserData;
+            var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+            var newUser = await emailAuth.EmailAuthSignUp(Email, Password);
+            if (newUser.Result != null)
+                Print.GreenLog($">>>> Firebase email auth user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} IsAnonymous {newUser.Result.IsAnonymous} DisplayName {newUser.Result.DisplayName}");
+            Assert.IsFalse(newUser.Result != null && newUser.Result.IsAnonymous, "newUser should not anonymous");
+
+            var sendPasswordResetEmailCompleted = await emailAuth.SendPasswordResetEmail(Email);
+
+            Assert.IsTrue(sendPasswordResetEmailCompleted, "sendPasswordResetEmail not completed");
+        }
     }
 }
