@@ -53,6 +53,7 @@ namespace InGameMoney
 		public Button SignUpButton => signUpButton;
 		public Button RegisterGuestAccount => registerGuestAccount;
 		public bool SignedIn => signedIn;
+		public static FirebaseUser CurrentUser => auth.CurrentUser;
 
 		public const string AppleUserIdKey = "AppleUserId";
 
@@ -324,7 +325,7 @@ namespace InGameMoney
 			signInButton.interactable = true;
 			registerGuestAccount.interactable = true;
 			OnLogout?.Invoke();
-			ObjectManager.Instance.RemoveAndAddListeners();
+			ObjectManager.Instance.DynamicListeners();
 		}
 
 		public static void UpdateFirestoreUserDataAfterCredentialLinked(string email, string password)
