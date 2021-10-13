@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Text;
 using System.Threading.Tasks;
 using AppleAuth;
-using AppleAuth.Enums;
-using AppleAuth.Extensions;
-using AppleAuth.Interfaces;
 using AppleAuth.Native;
 using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.Firestore;
+using Gravitons.UI.Modal;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
@@ -34,7 +31,7 @@ namespace InGameMoney
 		[SerializeField] private Button registerGuestAccount;
 
 		private static FirebaseFirestore db;
-		private FirebaseAuth auth;
+		private static FirebaseAuth auth;
 		private FirebaseUser user;
 		private bool signedIn;
 		private static ITaskFault taskFault;
@@ -132,6 +129,7 @@ namespace InGameMoney
 		private void InitializeAuthentication()
 		{
 			IAccountBase accountBase;
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
 			if (auth.CurrentUser.IsAnonymous)
 			{
 				accountBase = new Guest(FirebaseAuth.DefaultInstance);
@@ -142,7 +140,7 @@ namespace InGameMoney
 			}
 			else
 			{
-				accountBase = new EmailAuth();
+				accountBase = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
 			}
 
 			accountBase.Validate();
@@ -190,7 +188,7 @@ namespace InGameMoney
 		public static void OpenSignUpOptionView()
 		{
 			if (ObjectManager.Instance.InGameMoney) ObjectManager.Instance.InGameMoney.SetActive(false);
-			ObjectManager.Instance.FirstBoot.SetActive(true);
+			if (ObjectManager.Instance.FirstBoot) ObjectManager.Instance.FirstBoot.SetActive(true);
 			ObjectManager.Instance.ResetFirstBootView();
 		}
 
@@ -228,15 +226,13 @@ namespace InGameMoney
 			}
 		}
 
-		public async Task SignUpToFirestoreProcedure(User data)
+		public async Task SignUpToFirestoreProcedure(User data, bool login = true)
 		{
 			await SignUpToFirestoreAsync(data);
-			// Print.GreenLog($">>>> WriteUserData Email {data.Email}");
-			// WriteUserData(data);
-			Login();
+			if (login) Login();
 		}
 
-		public async Task SignUpToFirestoreAsync(User data)
+		public async Task SignUpToFirestoreAsync(User data, bool login = false)
 		{
 			Print.GreenLog($">>>> SignUpToFirestoreAsync Email {data.Email}");
 			var docRef = db.Collection("Users").Document(data.Email);
@@ -277,45 +273,19 @@ namespace InGameMoney
 		
 		public void OnButtonSignUpWithEmailFirebaseAuth()
 		{
-			var emailAuth = new EmailAuth();
-			emailAuth.PerformSignUpWithEmail();
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
+			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+			emailAuth.PerformSignUpWithEmail(inputfMailAdress.text, inputfPassword.text);
 		}
 		
-		public void OnButtonLoginFirebaseAuth()
+		public void OnButtonLoginWithEmailAuth()
 		{
-			ObjectManager.Instance.Logs.text = "Logging In User Account...";
-			FirebaseEmailAuthLogin();
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
+			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+			emailAuth.FirebaseEmailAuthLogin(inputfMailAdress.text, inputfPassword.text);
 		}
 
-		private async Task FirebaseEmailAuthLogin()
-		{
-			ObjectManager.Instance.Logs.text = "Logging In User Account...";
-			var loginTask = auth.SignInWithEmailAndPasswordAsync(inputfMailAdress.text, inputfPassword.text)
-				.ContinueWithOnMainThread(task => task);
-			
-			await loginTask;
-
-			if (loginTask.Result.IsCanceled)
-			{
-				ObjectManager.Instance.Logs.text = $"SignIn With email {inputfMailAdress.text} And Password Async was canceled ";
-				return;
-			}
-			
-			if (IsFaultedTask(loginTask.Result, true)) return;
-			
-			var login = loginTask.Result;
-			ObjectManager.Instance.Logs.text = $"Account Logged In, your user ID: {login.Result.UserId}";
-			WriteUserData();
-			Login();
-			var userData = new User
-			{
-				Email = inputfMailAdress.text,
-				Password = inputfPassword.text
-			};
-			UpdateLocalData(userData);
-		}
-
-		private void UpdateLocalData(User userData)
+		public void UpdateLocalData(User userData)
 		{
 			var dataAccess = UserDataAccess as UserDataAccess;
 			dataAccess?.UpdateLocalData(userData);
@@ -331,6 +301,7 @@ namespace InGameMoney
 		{
 			SetAuthButtonInteraction();
 			canvasIap.SetActive(true);
+			ObjectManager.Instance.ForgotPasswordButton.gameObject.SetActive(false);
 			inputfMailAdress.interactable = false;
 			inputfPassword.interactable = false;
 			OnLogin?.Invoke();
@@ -353,13 +324,18 @@ namespace InGameMoney
 			signInButton.interactable = true;
 			registerGuestAccount.interactable = true;
 			OnLogout?.Invoke();
-			ObjectManager.Instance.AddDefaultActions();
+			ObjectManager.Instance.RemoveAndAddListeners();
 		}
 
-		public static void LinkAccountToFirestore(string email, string password)
+		public static void UpdateFirestoreUserDataAfterCredentialLinked(string email, string password)
+		{
+			UpdateFirestoreUserData(email, password);
+		}
+
+		private static void UpdateFirestoreUserData(string email, string password, bool login = true)
 		{
 			var dataAccess = UserDataAccess as UserDataAccess;
-			dataAccess?.UpdateFirestoreUserDataAfterCredentialLinked(email, password);
+			dataAccess?.UpdateFirestoreUserData(email, password, login);
 		}
 		
 		public void SetAuthButtonInteraction()
@@ -391,6 +367,70 @@ namespace InGameMoney
 		{
 			var userData = UserDataAccess as UserDataAccess;
 			userData?.ResetPersonalData();
+		}
+
+		/// <summary>
+		/// Reset Password current signed in user.
+		/// Note this method doesn't work if auth.CurrentUser is null,
+		/// it means user must login once using email authentication,
+		/// this is also useful if user want to change password
+		/// </summary>
+		/// <param name="newPassword"></param>
+		public static async void ResetEmailAuthPassword(string newPassword)
+		{
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
+			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+			
+			var resetPasswordIsCompleted = await emailAuth.UpdatePasswordAsync(newPassword);
+
+			if (resetPasswordIsCompleted)
+			{
+				UserDataAccess.WriteAccountData(userData.AccountData.mailAddress, newPassword, false);
+				ModalManager.Show("Successfully Reset Password", "You can now sign in\n with your new password", new[]
+				{
+					new ModalButton
+					{
+						Text = "OK",
+						CallbackWithParams = OnFinishResetPasswordCallback,
+						Params = new object[]{ $"{userData.AccountData.mailAddress}", $"{newPassword}"}
+					}
+				});
+			}
+			else
+			{
+				Print.RedLog($">>>> Password reset failed!");
+			}
+		}
+
+		public static async void SendPasswordResetEmail(string emailAddress)
+		{
+			var userData = ((UserDataAccess)UserDataAccess).UserData;
+			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
+			PlayerPrefs.SetString(EmailAuth.NeedToUpdatePassword, "yes");
+			
+			var sendPasswordResetEmailCompleted = await emailAuth.SendPasswordResetEmail(emailAddress);
+
+			if (sendPasswordResetEmailCompleted)
+			{
+				ModalManager.Show("Successfully Send Password Reset Email", $"Please check your email at {emailAddress}", new[]
+				{
+					new ModalButton
+					{
+						Text = "OK",
+						Callback = ObjectManager.Instance.OnFinishResetPassword
+					}
+				});
+			}
+			else
+			{
+				Print.RedLog($">>>> Password reset failed!");
+			}
+		}
+
+		private static void OnFinishResetPasswordCallback(object[] items)
+		{
+			ObjectManager.Instance.OnFinishResetPassword();
+			UpdateFirestoreUserData(items[0] as string, items[1] as string, false);
 		}
 
 		public static void InitPersonalData()

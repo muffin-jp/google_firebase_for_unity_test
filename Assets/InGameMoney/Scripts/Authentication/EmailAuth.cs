@@ -3,20 +3,22 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using System.Threading.Tasks;
 using Firebase.Extensions;
+using Gravitons.UI.Modal;
+
 #pragma warning disable 4014
 
 namespace InGameMoney
 {
-    public class EmailAuth : IAccountBase
+    public class EmailAuth : AccountBase, IAccountBase
     {
         private readonly FirebaseAuth auth;
         private readonly UserData userData;
+        public const string NeedToUpdatePassword = "ResetPasswordByEmail";
 
-        public EmailAuth()
+        public EmailAuth(FirebaseAuth auth, UserData userData)
         {
-            auth = FirebaseAuth.DefaultInstance;
-            userData = ((UserDataAccess)AccountManager.UserDataAccess).UserData;
-            ObjectManager.Instance.FirstBootLogs.text = $"New Email Auth AppName {auth.App.Name}";
+            this.auth = auth;
+            this.userData = userData;
         }
         
         public void Validate()
@@ -26,7 +28,7 @@ namespace InGameMoney
                 AccountManager.Instance.SignOutBecauseLocalDataIsEmpty();
                 return;
             }
-            Print.GreenLog($">>>> NonGuest Email {auth.CurrentUser.Email} HasKey Apple {PlayerPrefs.HasKey(AccountManager.AppleUserIdKey)}");
+            Print.GreenLog($">>>> EmailAuth {auth.CurrentUser.Email} IsEmailVerified {auth.CurrentUser.IsEmailVerified} HasKey Apple {PlayerPrefs.HasKey(AccountManager.AppleUserIdKey)}");
             // Need to delete apple user id key before using email to sign in
             Assert.IsFalse(PlayerPrefs.HasKey(AccountManager.AppleUserIdKey));
             
@@ -41,6 +43,7 @@ namespace InGameMoney
             {
                 Print.GreenLog($">>>> OpenGameView from AutoLoginValidation {currentUserData.AccountData.mailAddress}");
                 AccountManager.Instance.OpenGameView();
+                ObjectManager.Instance.ForgotPasswordButton.gameObject.SetActive(true);
             }
             
             AccountManager.Instance.RegisterGuestAccount.interactable = false;
@@ -53,7 +56,7 @@ namespace InGameMoney
             }
         }
 
-        public void PerformSignUpWithEmail()
+        public void PerformSignUpWithEmail(string emailAddress, string password)
         {
             if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous && !AccountManager.Instance.RegisterGuestAccount.gameObject.activeSelf)
             {
@@ -61,7 +64,7 @@ namespace InGameMoney
             }
             else
             {
-                FirebaseEmailAuthSignUp();
+                FirebaseEmailAuthSignUp(emailAddress, password);
             }
         }
         
@@ -84,36 +87,160 @@ namespace InGameMoney
                 
                 var newUser = task.Result;
                 ObjectManager.Instance.Logs.text = $"Credentials successfully linked to Firebase userId {newUser.UserId}";
-                AccountManager.LinkAccountToFirestore(AccountManager.Instance.InputFieldMailAddress.text, AccountManager.Instance.InputFieldPassword.text);
+                AccountManager.UpdateFirestoreUserDataAfterCredentialLinked(AccountManager.Instance.InputFieldMailAddress.text, AccountManager.Instance.InputFieldPassword.text);
                 AccountManager.Instance.SetAuthButtonInteraction();
                 AccountManager.Instance.OpenGameView();
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }
         
-        private async Task FirebaseEmailAuthSignUp()
+        private async Task FirebaseEmailAuthSignUp(string emailAddress, string password)
         {
-            ObjectManager.Instance.Logs.text = "Creating User Account....";
+            var newUser = await EmailAuthSignUp(emailAddress, password);
+
+            if (newUser.Result != null)
+                Print.GreenLog($">>>> Firebase email auth user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} IsAnonymous {newUser.Result.IsAnonymous} DisplayName {newUser.Result.DisplayName}");
         
-            var task = auth.CreateUserWithEmailAndPasswordAsync(AccountManager.Instance.InputFieldMailAddress.text, AccountManager.Instance.InputFieldPassword.text)
+            await AccountManager.Instance.SignUpToFirestoreAsync(AccountManager.Instance.GetDefaultUserDataFromInputField());
+            AccountManager.Instance.WriteUserData();
+            SendVerificationEmail();
+        }
+
+        public async Task<Task<FirebaseUser>> EmailAuthSignUp(string emailAddress, string password)
+        {
+            Print.GreenLog(">>>> Creating User Account....");
+        
+            var task = auth.CreateUserWithEmailAndPasswordAsync(emailAddress, password)
                 .ContinueWithOnMainThread(signUpTask => signUpTask);
         
             await task;
         
             if (task.Result.IsCanceled)
             {
-                ObjectManager.Instance.Logs.text = "Create User With Email And Password was canceled.";
+                Print.GreenLog(">>>> Create User With Email And Password was canceled.");
+            }
+
+            if (AccountManager.IsFaultedTask(task.Result))
+            {
+                Print.RedLog($"Exception {task.Result.Exception}");
+            }
+
+            return task.Result.IsCompleted ? task.Result : default;
+        }
+
+        private async void SendVerificationEmail()
+        {
+            var user = auth.CurrentUser;
+            var verificationTask = user.SendEmailVerificationAsync().ContinueWith(task => task);
+
+            await verificationTask;
+            
+            if (verificationTask.IsCanceled) {
+                Debug.LogError(">>>> SendEmailVerificationAsync was canceled.");
                 return;
             }
-        
-            if (AccountManager.IsFaultedTask(task.Result)) return;
-        
-            var newUser = task.Result;
-            ObjectManager.Instance.Logs.text =
-                $"Firebase user created successfully Email {newUser.Result.Email} id {newUser.Result.UserId} DisplayName {newUser.Result.DisplayName}";
-        
-            await AccountManager.Instance.SignUpToFirestoreAsync(AccountManager.Instance.GetDefaultUserDataFromInputField());
+            if (verificationTask.IsFaulted) {
+                Debug.LogError(">>>> SendEmailVerificationAsync encountered an error: " + verificationTask.Exception);
+                return;
+            }
+
+            Debug.Log(">>>> Verification Email sent successfully.");
+            ModalManager.Show("Verification Email Sent Successfully",
+                "Please check your email and click link verification",
+                new[] { new ModalButton { 
+                    Text = "OK", 
+                    Callback = AccountManager.Instance.Login 
+                } 
+                });
+        }
+
+        public async Task FirebaseEmailAuthLogin(string emailAddress, string password)
+        {
+            var login = await SignInWithEmailAndPassword(emailAddress, password);
+            if (login.Result != null) 
+                Print.GreenLog($">>>> Account Logged In, your user ID: {login.Result.UserId}");
+
+            var data = new User
+            {
+                Email = emailAddress,
+                Password = password
+            };
+            if (PlayerPrefs.HasKey(NeedToUpdatePassword))
+            {
+                await UserData.Instance.UpdateFirestoreUserData(data, false);
+                PlayerPrefs.DeleteKey(NeedToUpdatePassword);
+            }
+            
             AccountManager.Instance.WriteUserData();
             AccountManager.Instance.Login();
+            
+            AccountManager.Instance.UpdateLocalData(data);
+        }
+
+        public async Task<Task<FirebaseUser>> SignInWithEmailAndPassword(string emailAddress, string password)
+        {
+            Print.GreenLog(">>>> Logging In User Account...");
+            var loginTask = auth.SignInWithEmailAndPasswordAsync(emailAddress, password)
+                .ContinueWithOnMainThread(task => task);
+			
+            await loginTask;
+
+            if (loginTask.Result.IsCanceled)
+            {
+                Print.RedLog($">>>> SignIn With email {emailAddress} And Password Async was canceled ");
+            }
+
+            if (AccountManager.IsFaultedTask(loginTask.Result, true))
+            {
+                Print.RedLog($">>>> loginTask.Result.Exception {loginTask.Result.Exception}");
+            }
+
+            return loginTask.Result.IsCompleted ? loginTask.Result : default;
+        }
+        
+        public async Task DeleteUserAsync()
+        {
+            await DeleteUserAsync(auth);
+        }
+
+        public async Task<bool> UpdatePasswordAsync(string newPassword)
+        {
+            var user = auth.CurrentUser;
+            var updateTask = user.UpdatePasswordAsync(newPassword)
+                .ContinueWithOnMainThread(task => task);
+
+            await updateTask;
+            
+            if (updateTask.Result.IsCanceled) {
+                Print.RedLog(">>>> UpdatePasswordAsync was canceled.");
+                return false;
+            }
+            if (updateTask.Result.IsFaulted) {
+                Print.RedLog(">>>> UpdatePasswordAsync encountered an error: " + updateTask.Result.Exception);
+                return false;
+            }
+
+            Print.GreenLog($">>>> UpdatePasswordAsync IsCompleted {updateTask.Result.IsCompleted}");
+            return updateTask.Result.IsCompleted;
+        }
+
+        public async Task<bool> SendPasswordResetEmail(string emailAddress)
+        {
+            var sendPasswordTask = auth.SendPasswordResetEmailAsync(emailAddress)
+                .ContinueWithOnMainThread(task => task);
+
+            await sendPasswordTask;
+            
+            if (sendPasswordTask.Result.IsCanceled) {
+                Print.RedLog(">>>> SendPasswordResetEmail was canceled.");
+                return false;
+            }
+            if (sendPasswordTask.Result.IsFaulted) {
+                Print.RedLog(">>>> SendPasswordResetEmail encountered an error: " + sendPasswordTask.Result.Exception);
+                return false;
+            }
+            
+            Print.GreenLog($">>>> SendPasswordResetEmail IsCompleted {sendPasswordTask.Result.IsCompleted}");
+            return sendPasswordTask.Result.IsCompleted;
         }
     }
 }
