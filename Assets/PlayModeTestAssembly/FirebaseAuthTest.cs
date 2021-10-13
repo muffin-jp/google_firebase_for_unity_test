@@ -161,6 +161,10 @@ namespace PlayModeTestAssembly
             var sendPasswordResetEmailCompleted = await emailAuth.SendPasswordResetEmail(Email);
 
             Assert.IsTrue(sendPasswordResetEmailCompleted, "sendPasswordResetEmail not completed");
+            
+            await emailAuth.DeleteUserAsync();
+            AccountManager.Instance.SignOut();
+            Assert.IsFalse(AccountManager.Instance.SignedIn, "Should be signed out");
         }
     }
 }

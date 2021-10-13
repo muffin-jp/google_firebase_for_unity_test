@@ -42,17 +42,9 @@
                 int index = i; //Closure
                 m_Buttons[i].onClick.AddListener(() =>
                 {
-                    if (modalButton[index].Callback != null)
-                    {
-                        modalButton[index].Callback();
-                    }
+                    modalButton[index].InvokeCallback(modalButton[index].Callback);
+                    modalButton[index].InvokeCallback(modalButton[index].CallbackWithParams);
 
-                    if (modalButton[index].CallbackWithParams != null &&
-                        modalButton[index].Params != null)
-                    {
-                        modalButton[index].CallbackWithParams(modalButton[index].Params);
-                    }
-                    
                     if (modalButton[index].CloseModalOnClick)
                     {
                         Close();

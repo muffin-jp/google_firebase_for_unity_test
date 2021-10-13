@@ -295,7 +295,7 @@ namespace InGameMoney {
 		Print.GreenLog($">>>> GetUserData _data == null {accountData == null} mailAddress {accountData?.mailAddress}");
 		var email = accountData?.mailAddress ?? newUser?.Email;
 		
-		if (email == null)
+		if (string.IsNullOrEmpty(email))
 		{
 			// No previous data, possibly using new device, so we need to provide new email
 			Print.GreenLog($">>>> GetUserData No previous email so return new email or default");

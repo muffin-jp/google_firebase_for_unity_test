@@ -32,5 +32,15 @@ namespace Gravitons.UI.Modal
             set { m_CloseModalOnClick = value; }
         }
         private bool m_CloseModalOnClick = true;
+
+        public void InvokeCallback(Action callback)
+        {
+            callback?.Invoke();
+        }
+
+        public void InvokeCallback(CallbackWithParams callbackWithParams)
+        {
+            callbackWithParams?.Invoke(Params);
+        }
     }
 }

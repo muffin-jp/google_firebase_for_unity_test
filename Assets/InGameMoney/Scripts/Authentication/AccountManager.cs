@@ -430,7 +430,7 @@ namespace InGameMoney
 		private static void OnFinishResetPasswordCallback(object[] items)
 		{
 			ObjectManager.Instance.OnFinishResetPassword();
-			UpdateFirestoreUserData(items[0] as string, items[1] as string);
+			UpdateFirestoreUserData(items[0] as string, items[1] as string, false);
 		}
 
 		public static void InitPersonalData()
