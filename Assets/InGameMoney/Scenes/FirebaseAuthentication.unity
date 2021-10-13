@@ -1970,7 +1970,7 @@ PrefabInstance:
     - target: {fileID: 6072813135666979496, guid: 93888116433ec45c08361d4dc809ed7a,
         type: 3}
       propertyPath: m_Name
-      value: SupportContact
+      value: ContactSupport
       objectReference: {fileID: 0}
     - target: {fileID: 6072813135666979497, guid: 93888116433ec45c08361d4dc809ed7a,
         type: 3}
