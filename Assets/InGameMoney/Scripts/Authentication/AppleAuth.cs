@@ -253,7 +253,7 @@ namespace InGameMoney
             AccountManager.Instance.UpdatePurchaseAndShop();
             ObjectManager.Instance.ResetInputField();
             AccountManager.Instance.OpenGameView();
-            AccountManager.Instance.RegisterGuestAccount.interactable = false;
+            ObjectManager.Instance.RegisterGuestAccountButton.interactable = false;
         }
     }
 }

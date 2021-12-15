@@ -46,9 +46,9 @@ namespace InGameMoney
                 ObjectManager.Instance.ForgotPasswordButton.gameObject.SetActive(true);
             }
             
-            AccountManager.Instance.RegisterGuestAccount.interactable = false;
+            ObjectManager.Instance.RegisterGuestAccountButton.interactable = false;
             
-            if (AccountManager.Instance.AutoLogin.isOn)
+            if (ObjectManager.Instance.AutoLogin.isOn)
             {
                 ObjectManager.Instance.Logs.text = $"Sign in: {auth.CurrentUser.Email}";
                 AccountManager.Instance.Login();
@@ -58,7 +58,7 @@ namespace InGameMoney
 
         public void PerformSignUpWithEmail(string emailAddress, string password)
         {
-            if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous && !AccountManager.Instance.RegisterGuestAccount.gameObject.activeSelf)
+            if (auth?.CurrentUser != null && auth.CurrentUser.IsAnonymous && !ObjectManager.Instance.RegisterGuestAccountButton.gameObject.activeSelf)
             {
                 LinkAuthWithEmailCredential();
             }
@@ -71,7 +71,7 @@ namespace InGameMoney
         private void LinkAuthWithEmailCredential()
         {
             ObjectManager.Instance.Logs.text = "Linking Guest auth credential ...";
-            var credential = EmailAuthProvider.GetCredential(AccountManager.Instance.InputFieldMailAddress.text, AccountManager.Instance.InputFieldPassword.text);
+            var credential = EmailAuthProvider.GetCredential(ObjectManager.Instance.InputFieldMailAddress.text, ObjectManager.Instance.InputFieldPassword.text);
             var currentUser = auth.CurrentUser;
 
             currentUser.LinkWithCredentialAsync(credential).ContinueWith(task =>
@@ -87,7 +87,7 @@ namespace InGameMoney
                 
                 var newUser = task.Result;
                 ObjectManager.Instance.Logs.text = $"Credentials successfully linked to Firebase userId {newUser.UserId}";
-                AccountManager.UpdateFirestoreUserDataAfterCredentialLinked(AccountManager.Instance.InputFieldMailAddress.text, AccountManager.Instance.InputFieldPassword.text);
+                AccountManager.UpdateFirestoreUserDataAfterCredentialLinked(ObjectManager.Instance.InputFieldMailAddress.text, ObjectManager.Instance.InputFieldPassword.text);
                 AccountManager.Instance.SetAuthButtonInteraction();
                 AccountManager.Instance.OpenGameView();
             }, TaskScheduler.FromCurrentSynchronizationContext());

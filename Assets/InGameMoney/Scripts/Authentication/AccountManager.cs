@@ -18,16 +18,16 @@ namespace InGameMoney
 {
 	public class AccountManager : MonoBehaviour
 	{
-		[FormerlySerializedAs("_inputfMailAdress")] [SerializeField]
-		private InputField inputfMailAdress;
-		[FormerlySerializedAs("_inputfPassword")] [SerializeField]
-		private InputField inputfPassword;
-		[SerializeField] private GameObject canvasIap;
-		[FormerlySerializedAs("_autoLogin")] [SerializeField]
-		private Toggle autoLogin;
-		[SerializeField] private Button signInButton;
-		[SerializeField] private Button signOutButton;
-		[SerializeField] private Button signUpButton;
+		// [FormerlySerializedAs("_inputfMailAdress")] [SerializeField]
+		// private InputField inputfMailAdress;
+		// [FormerlySerializedAs("_inputfPassword")] [SerializeField]
+		// private InputField inputfPassword;
+		// [SerializeField] private GameObject canvasIap;
+		// [FormerlySerializedAs("_autoLogin")] [SerializeField]
+		// private Toggle autoLogin;
+		// [SerializeField] private Button signInButton;
+		// [SerializeField] private Button signOutButton;
+		// [SerializeField] private Button signUpButton;
 		[SerializeField] private Button registerGuestAccount;
 
 		private static FirebaseFirestore db;
@@ -44,14 +44,14 @@ namespace InGameMoney
 		public static UnityAction OnLogout = null;
 		public static FirebaseFirestore Db => db;
 		public static IWriteUserData UserDataAccess;
-		public InputField InputFieldMailAddress => inputfMailAdress;
-		public InputField InputFieldPassword => inputfPassword;
-		public Toggle AutoLogin => autoLogin;
-		public GameObject CanvasIAP => canvasIap;
-		public Button SignInButton => signInButton;
-		public Button SignOutButton => signOutButton;
-		public Button SignUpButton => signUpButton;
-		public Button RegisterGuestAccount => registerGuestAccount;
+		//public InputField InputFieldMailAddress => inputfMailAdress;
+		//public InputField InputFieldPassword => inputfPassword;
+		// public Toggle AutoLogin => autoLogin;
+		//public GameObject CanvasIAP => canvasIap;
+		// public Button SignInButton => signInButton;
+		// public Button SignOutButton => signOutButton;
+		// public Button SignUpButton => signUpButton;
+		// public Button RegisterGuestAccount => registerGuestAccount;
 		public bool SignedIn => signedIn;
 		public static FirebaseUser CurrentUser => auth.CurrentUser;
 
@@ -95,8 +95,8 @@ namespace InGameMoney
 		private async void Start()
 		{
 			db = FirebaseFirestore.DefaultInstance;
-			inputfPassword.inputType = InputField.InputType.Password;
-			inputfPassword.asteriskChar = "$!£%&*"[5];
+			ObjectManager.Instance.InputFieldPassword.inputType = InputField.InputType.Password;
+			ObjectManager.Instance.InputFieldPassword.asteriskChar = "$!£%&*"[5];
 			UserDataAccess = new UserDataAccess();
 
 			AppleAuthValidation();
@@ -179,7 +179,7 @@ namespace InGameMoney
 
 		public void SignOut()
 		{
-			autoLogin.isOn = false;
+			ObjectManager.Instance.AutoLogin.isOn = false;
 			auth?.SignOut();
 			Print.GreenLog($"Sign Out: {auth?.CurrentUser}");
 			OpenSignUpOptionView();
@@ -195,17 +195,17 @@ namespace InGameMoney
 
 		public void SetupUI(string emailAddress, string password, bool autoLogin)
 		{
-			inputfMailAdress.text = emailAddress;
-			inputfPassword.text = password;
-			this.autoLogin.isOn = autoLogin;
-			canvasIap.SetActive(false);
+			ObjectManager.Instance.InputFieldMailAddress.text = emailAddress;
+			ObjectManager.Instance.InputFieldPassword.text = password;
+			ObjectManager.Instance.AutoLogin.isOn = autoLogin;
+			ObjectManager.Instance.CanvasIAP.SetActive(false);
 		}
 		
 		public void OpenGameView()
 		{
 			ObjectManager.Instance.FirstBoot.SetActive(false);
 			ObjectManager.Instance.InGameMoney.SetActive(true);
-			signUpButton.interactable = false;
+			ObjectManager.Instance.SignUpButton.interactable = false;
 		}
 
 		private void OnApplicationQuit()
@@ -220,10 +220,10 @@ namespace InGameMoney
 		public void WriteUserData(User data = null)
 		{
 			if (data == null)
-				UserDataAccess?.WriteAccountData(inputfMailAdress.text, inputfPassword.text, autoLogin.isOn);
+				UserDataAccess?.WriteAccountData(ObjectManager.Instance.InputFieldMailAddress.text, ObjectManager.Instance.InputFieldPassword.text, ObjectManager.Instance.AutoLogin.isOn);
 			else
 			{
-				UserDataAccess?.WriteAccountData(data.Email, data.Password, autoLogin.isOn);
+				UserDataAccess?.WriteAccountData(data.Email, data.Password, ObjectManager.Instance.AutoLogin.isOn);
 			}
 		}
 
@@ -261,12 +261,12 @@ namespace InGameMoney
 
 		public User GetDefaultUserDataFromInputField()
 		{
-			Assert.IsNotNull(inputfMailAdress.text, "Email is Missing !");
-			Assert.IsNotNull(inputfPassword.text, "Password is Missing");
+			Assert.IsNotNull(ObjectManager.Instance.InputFieldMailAddress.text, "Email is Missing !");
+			Assert.IsNotNull(ObjectManager.Instance.InputFieldPassword.text, "Password is Missing");
 			return new User
 			{
-				Email = inputfMailAdress.text,
-				Password = inputfPassword.text,
+				Email = ObjectManager.Instance.InputFieldMailAddress.text,
+				Password = ObjectManager.Instance.InputFieldPassword.text,
 				MoneyBalance = 0,
 				SignUpTimeStamp = FieldValue.ServerTimestamp
 			};
@@ -276,14 +276,14 @@ namespace InGameMoney
 		{
 			var userData = ((UserDataAccess)UserDataAccess).UserData;
 			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
-			emailAuth.PerformSignUpWithEmail(inputfMailAdress.text, inputfPassword.text);
+			emailAuth.PerformSignUpWithEmail(ObjectManager.Instance.InputFieldMailAddress.text, ObjectManager.Instance.InputFieldPassword.text);
 		}
 		
 		public void OnButtonLoginWithEmailAuth()
 		{
 			var userData = ((UserDataAccess)UserDataAccess).UserData;
 			var emailAuth = new EmailAuth(FirebaseAuth.DefaultInstance, userData);
-			emailAuth.FirebaseEmailAuthLogin(inputfMailAdress.text, inputfPassword.text);
+			emailAuth.FirebaseEmailAuthLogin(ObjectManager.Instance.InputFieldMailAddress.text, ObjectManager.Instance.InputFieldPassword.text);
 		}
 
 		public void UpdateLocalData(User userData)
@@ -301,10 +301,10 @@ namespace InGameMoney
 		public void Login()
 		{
 			SetAuthButtonInteraction();
-			canvasIap.SetActive(true);
+			ObjectManager.Instance.CanvasIAP.SetActive(true);
 			ObjectManager.Instance.ForgotPasswordButton.gameObject.SetActive(false);
-			inputfMailAdress.interactable = false;
-			inputfPassword.interactable = false;
+			ObjectManager.Instance.InputFieldMailAddress.interactable = false;
+			ObjectManager.Instance.InputFieldPassword.interactable = false;
 			OnLogin?.Invoke();
 			if (!PlayerPrefs.HasKey(InstallationKey))
 				PlayerPrefs.SetString(InstallationKey, "Yes");
@@ -319,11 +319,11 @@ namespace InGameMoney
 
 		private void Logout()
 		{
-			canvasIap.SetActive(false);
-			inputfMailAdress.interactable = true;
-			inputfPassword.interactable = true;
-			signInButton.interactable = true;
-			registerGuestAccount.interactable = true;
+			ObjectManager.Instance.CanvasIAP.SetActive(false);
+			ObjectManager.Instance.InputFieldMailAddress.interactable = true;
+			ObjectManager.Instance.InputFieldPassword.interactable = true;
+			ObjectManager.Instance.SignInButton.interactable = true;
+			ObjectManager.Instance.RegisterGuestAccountButton.interactable = true;
 			OnLogout?.Invoke();
 			ObjectManager.Instance.DynamicListeners();
 		}
@@ -341,9 +341,9 @@ namespace InGameMoney
 		
 		public void SetAuthButtonInteraction()
 		{
-			signInButton.interactable = false;
-			signUpButton.interactable = false;
-			signOutButton.interactable = true;
+			ObjectManager.Instance.SignInButton.interactable = false;
+			ObjectManager.Instance.SignUpButton.interactable = false;
+			ObjectManager.Instance.SignOutButton.interactable = true;
 		}
 
 		public void OnSignInWithAppleButton()

@@ -89,7 +89,7 @@ namespace InGameMoney {
 		var writeUserData = AccountManager.UserDataAccess;
 		var mailAddress = data.Email;
 		var password = data.Password;
-		var autoLogin = AccountManager.Instance.AutoLogin;
+		var autoLogin = ObjectManager.Instance.AutoLogin;
 		writeUserData.WriteAccountData(mailAddress, password, autoLogin);
 	}
 

@@ -33,9 +33,25 @@ namespace InGameMoney
         [SerializeField] private InputField resetPasswordEmailInputField;
         [SerializeField] private Button contactSupportButton;
         [SerializeField] private GameObject contactSupport;
-        
-        
         private Func<User, bool, Task> firestoreRegistrationAsync;
+        
+        [SerializeField] private InputField inputFieldMailAddress;
+        [SerializeField] private InputField inputFieldPassword;
+        [SerializeField] private GameObject canvasIap;
+        [SerializeField] private Toggle autoLogin;
+        [SerializeField] private Button signInButton;
+        [SerializeField] private Button signOutButton;
+        [SerializeField] private Button signUpButton;
+        [SerializeField] private Button registerGuestAccountButton;
+
+        public InputField InputFieldMailAddress => inputFieldMailAddress;
+        public InputField InputFieldPassword => inputFieldPassword;
+        public GameObject CanvasIAP => canvasIap;
+        public Toggle AutoLogin => autoLogin;
+        public Button SignInButton => signInButton;
+        public Button SignOutButton => signOutButton;
+        public Button SignUpButton => signUpButton;
+        public Button RegisterGuestAccountButton => registerGuestAccountButton;
         
         public PurchaseTest Purchase => purchase;
         public Text Logs => logs;
