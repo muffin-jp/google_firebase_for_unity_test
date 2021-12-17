@@ -18,18 +18,6 @@ namespace InGameMoney
 {
 	public class AccountManager : MonoBehaviour
 	{
-		// [FormerlySerializedAs("_inputfMailAdress")] [SerializeField]
-		// private InputField inputfMailAdress;
-		// [FormerlySerializedAs("_inputfPassword")] [SerializeField]
-		// private InputField inputfPassword;
-		// [SerializeField] private GameObject canvasIap;
-		// [FormerlySerializedAs("_autoLogin")] [SerializeField]
-		// private Toggle autoLogin;
-		// [SerializeField] private Button signInButton;
-		// [SerializeField] private Button signOutButton;
-		// [SerializeField] private Button signUpButton;
-		[SerializeField] private Button registerGuestAccount;
-
 		private static FirebaseFirestore db;
 		private static FirebaseAuth auth;
 		private FirebaseUser user;
@@ -44,14 +32,6 @@ namespace InGameMoney
 		public static UnityAction OnLogout = null;
 		public static FirebaseFirestore Db => db;
 		public static IWriteUserData UserDataAccess;
-		//public InputField InputFieldMailAddress => inputfMailAdress;
-		//public InputField InputFieldPassword => inputfPassword;
-		// public Toggle AutoLogin => autoLogin;
-		//public GameObject CanvasIAP => canvasIap;
-		// public Button SignInButton => signInButton;
-		// public Button SignOutButton => signOutButton;
-		// public Button SignUpButton => signUpButton;
-		// public Button RegisterGuestAccount => registerGuestAccount;
 		public bool SignedIn => signedIn;
 		public static FirebaseUser CurrentUser => auth.CurrentUser;
 
