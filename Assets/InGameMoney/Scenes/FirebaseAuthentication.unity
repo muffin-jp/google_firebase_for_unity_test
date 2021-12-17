@@ -561,8 +561,7 @@ MonoBehaviour:
   signInButton: {fileID: 1019430953}
   signOutButton: {fileID: 1101210498}
   signUpButton: {fileID: 1293138212}
-  registerGuestAccount2: {fileID: 266581267}
-  InputFieldMailAddress: {fileID: 0}
+  registerGuestAccountButton: {fileID: 266581267}
 --- !u!1 &246009924
 GameObject:
   m_ObjectHideFlags: 0
@@ -4618,14 +4617,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b92eb55def7ce294bb1a4e0338afae95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputfMailAdress: {fileID: 384818230}
-  inputfPassword: {fileID: 1505154844}
-  canvasIap: {fileID: 2143162249}
-  autoLogin: {fileID: 246009926}
-  signInButton: {fileID: 1019430953}
-  signOutButton: {fileID: 1101210498}
-  signUpButton: {fileID: 1293138212}
-  registerGuestAccount: {fileID: 266581267}
 --- !u!4 &1522978388
 Transform:
   m_ObjectHideFlags: 0

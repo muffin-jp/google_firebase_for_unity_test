@@ -18,7 +18,6 @@ namespace InGameMoney
         [SerializeField] private GameObject canvasAccount;
         [SerializeField] private GameObject canvasInAppPurchase;
         [SerializeField] private GameObject canvasResetPassword;
-        [SerializeField] private GameObject registerGuestAccount;
         [SerializeField] private Button loginButton;
         [SerializeField] private Button logoutButton;
         [SerializeField] private Button signUpWithEmailButton;
@@ -62,7 +61,6 @@ namespace InGameMoney
         public ShopTest Shop => shop;
         public static ObjectManager Instance { get; private set; }
         public Button SignUpSignInWithEmailButton => signUpSignInWithEmailButton;
-        public GameObject RegisterGuestAccount => registerGuestAccount;
         public Text MoneyBalanceText => moneyBalanceText;
         public Button ForgotPasswordButton => forgotPasswordButton;
         
@@ -118,7 +116,7 @@ namespace InGameMoney
             inGameMoney.SetActive(true);
             firstBoot.SetActive(false);
             canvasInAppPurchase.SetActive(false);
-            registerGuestAccount.SetActive(false);
+            registerGuestAccountButton.gameObject.SetActive(false);
             loginButton.interactable = false;
             logoutButton.interactable = false;
             signUpWithEmailButton.gameObject.SetActive(true);
@@ -131,7 +129,7 @@ namespace InGameMoney
             inGameMoney.SetActive(true);
             firstBoot.SetActive(false);
             canvasInAppPurchase.SetActive(false);
-            registerGuestAccount.SetActive(false);
+            registerGuestAccountButton.gameObject.SetActive(false);
             signUpWithEmailButton.gameObject.SetActive(false);
             loginButton.interactable = true;
             logoutButton.interactable = false;
