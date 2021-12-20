@@ -292,14 +292,20 @@ namespace InGameMoney {
 
 	private async Task<User> GetUserData(User newUser = null)
 	{
-		Print.GreenLog($">>>> GetUserData _data == null {accountData == null} mailAddress {accountData?.mailAddress}");
 		var email = accountData?.mailAddress ?? newUser?.Email;
+		Print.GreenLog($">>>> GetUserData _data == null {accountData == null} mailAddress: {accountData?.mailAddress} email: {email}");
 		
 		if (string.IsNullOrEmpty(email))
 		{
-			// No previous data, possibly using new device, so we need to provide new email
-			Print.GreenLog($">>>> GetUserData No previous email so return new email or default");
-			return default;
+			// No previous data, because accountData is not null but accountData.mailAddress is null
+			// because OnApplicationQuit calling WriteUserData after LogOut or possibly using new device
+			email = newUser?.Email;
+			Print.GreenLog($">>>> GetUserData No previous data or accountData is not null but accountData.mailAddress is null because OnApplicationQuit calling WriteUserData after LogOut | email {email}");
+			if (string.IsNullOrEmpty(email))
+			{
+				Print.GreenLog($">>>> GetUserData No previous email {email} and no newUser.Email so return default ");
+				return default;
+			}
 		}
 		
 		var usersRef = AccountManager.Db.Collection("Users").Document(email);

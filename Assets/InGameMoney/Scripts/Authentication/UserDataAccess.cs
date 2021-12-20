@@ -21,6 +21,7 @@ namespace InGameMoney
 
         public void WriteAccountData(string mailAddress, string password, bool autoLogin)
         {
+            Print.GreenLog($">>>> WriteAccountData");
             if (userData?.AccountData == null)
             {
                 Print.GreenLog($">>>> Can not WriteAccountData because null");
