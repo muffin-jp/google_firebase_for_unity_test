@@ -31,6 +31,9 @@ namespace InGameMoney
         [SerializeField] private InputField newPasswordInput;
         [SerializeField] private InputField confirmNewPasswordInput;
         [SerializeField] private InputField resetPasswordEmailInputField;
+        [SerializeField] private Button contactSupportButton;
+        [SerializeField] private GameObject contactSupport;
+        
         
         private Func<User, bool, Task> firestoreRegistrationAsync;
         
@@ -64,12 +67,18 @@ namespace InGameMoney
 
         private void Start()
         {
-            RemoveAndAddListeners();
-            forgotPasswordButton.onClick.AddListener(OnForgotPasswordButtonPressed);
-            resetPasswordButton.onClick.AddListener(OnResetPasswordButtonPressed);
+            DynamicListeners();
+            AddPassiveListeners();
         }
 
-        public void RemoveAndAddListeners()
+        private void AddPassiveListeners()
+        {
+            forgotPasswordButton.onClick.AddListener(OnForgotPasswordButtonPressed);
+            resetPasswordButton.onClick.AddListener(OnResetPasswordButtonPressed);
+            contactSupportButton.onClick.AddListener(OnContactSupportButtonPressed);
+        }
+
+        public void DynamicListeners()
         {
             RemoveAndAddListenerToButtons();
             AddActions();
@@ -196,6 +205,20 @@ namespace InGameMoney
             resetPasswordButton.interactable = false;
             newPasswordInput.text = "";
             confirmNewPasswordInput.text = "";
+        }
+        
+        private void OnContactSupportButtonPressed()
+        {
+            contactSupport.SetActive(true);
+            inGameMoney.SetActive(false);
+            contactSupportButton.gameObject.SetActive(false);
+        }
+
+        public void CloseContactForm()
+        {
+            contactSupport.SetActive(false);
+            inGameMoney.SetActive(true);
+            contactSupportButton.gameObject.SetActive(true);
         }
     }
 }
