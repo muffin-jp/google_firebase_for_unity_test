@@ -23,7 +23,7 @@ namespace PlayModeTestAssembly
         private const string UserName = "Guest1";
         private const string MailHost = "smtp.gmail.com";
         private const int MailPort = 587;
-        private const string MailPassword = "P@ssw0rd771";
+        private const string MailPassword = "*******";
         private const string PublisherMailAddress = "iwatanic@gmail.com";
         private const string Messages = "Hello From Unity Test Runner";
         private static bool sendingEmailComplete;
